@@ -135,6 +135,12 @@ export const authApi = {
       body: JSON.stringify({ email, password }),
     });
 
+  console.log('LOGIN DATA:', data); // 👈 AQUI DENTRO
+
+  if (!data?.token) {
+    throw new Error('Login falhou: token não recebido');
+  }
+
     localStorage.setItem('chatplay_token', data.token);
     localStorage.setItem('chatplay_refresh_token', data.refreshToken);
 
