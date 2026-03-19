@@ -46,20 +46,22 @@ async function doRefresh(): Promise<string> {
   if (!rToken) throw new Error('Sem refresh token.');
 
   const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ refreshToken: rToken }),
-    signal:  AbortSignal.timeout(15_000),
-  });
+    method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ refreshToken: rToken }),
+  signal: AbortSignal.timeout(15_000),
+});
 
-  if (!res.ok) {
-    clearTokens();
-    throw new Error('Sessão expirada. Faça login novamente.');
-  }
+if (!res.ok) {
+  clearTokens();
+  throw new Error('Sessão expirada. Faça login novamente.');
+}
 
-  const data = await res.json() as { token: string };
-  localStorage.setItem('chatplay_token', data.token);
-  return data.token;
+const data = await res.json(); // 👈 só uma vez
+
+localStorage.setItem('chatplay_token', data.token);
+
+return data.token;
 }
 
 async function request<T>(
@@ -123,18 +125,34 @@ async function request<T>(
     throw new Error(message);
   }
 
-  return res.json() as Promise<T>;
+  const text = await res.text();
+
+if (!text) {
+  throw new Error('Resposta vazia do servidor');
+}
+
+try {
+  return JSON.parse(text) as T;
+} catch (err) {
+  console.error('Erro ao parsear JSON:', text);
+  throw new Error('Resposta inválida do servidor');
 }
 
 // ============================================================
 // Auth
 // ============================================================
 export const authApi = {
-  login: (email: string, password: string) =>
-    request<AuthResponse>('/api/auth/login', {
-      method: 'POST',
-      body:   JSON.stringify({ email, password }),
-    }),
+  login: async (email: string, password: string) => {
+  const data = await request<AuthResponse>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+
+  localStorage.setItem('chatplay_token', data.token);
+  localStorage.setItem('chatplay_refresh_token', data.refreshToken);
+
+  return data;
+},
 
   me: () =>
     request<{ user: User }>('/api/auth/me'),
