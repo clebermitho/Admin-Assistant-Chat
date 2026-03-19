@@ -100,16 +100,31 @@ async function request<T>(
   }
 
   if (!res.ok) {
-    const text = await res.text();
-    let message = `HTTP ${res.status}`;
-    try {
-      const json = JSON.parse(text);
-      message = json.error || json.message || message;
-    } catch {}
-    throw new Error(message);
-  }
+  const text = await res.text();
+  let message = `HTTP ${res.status}`;
+  try {
+    const json = JSON.parse(text);
+    message = json.error || json.message || message;
+  } catch {}
+  throw new Error(message);
+}
 
-  return await res.json();
+// 🔥 NOVO BLOCO
+if (res.status === 204) {
+  return {} as T;
+}
+
+const text = await res.text();
+
+if (!text) {
+  return {} as T;
+}
+
+try {
+  return JSON.parse(text) as T;
+} catch (err) {
+  console.error('Erro ao parsear JSON:', text);
+  throw new Error('Resposta inválida do servidor');
 }
 
 // ============================================================
