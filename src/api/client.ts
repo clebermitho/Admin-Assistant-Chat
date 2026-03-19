@@ -33,6 +33,7 @@ function getRefreshToken(): string | null {
 function clearTokens(): void {
   localStorage.removeItem('chatplay_token');
   localStorage.removeItem('chatplay_refresh_token');
+  localStorage.removeItem('chatplay_token_expires');
 }
 
 // ============================================================
@@ -56,12 +57,16 @@ async function doRefresh(): Promise<string> {
 
   const data = await res.json();
   localStorage.setItem('chatplay_token', data.token);
+  
+  if (data.expiresAt) {
+    localStorage.setItem('chatplay_token_expires', data.expiresAt);
+  }
 
   return data.token;
 }
 
 // ============================================================
-// REQUEST PADRÃO
+// REQUEST PADRÃO - CORRIGIDO
 // ============================================================
 async function request<T>(
   path: string,
@@ -110,41 +115,72 @@ async function request<T>(
     throw new Error(message);
   }
 
-  // 🔥 LEITURA SEGURA DO JSON
+  // LEITURA SEGURA DO JSON - MELHORADA
   try {
-    return await res.json();
-  } catch {
+    const text = await res.text();
+    
+    // Se a resposta estiver vazia
+    if (!text || text.trim() === '') {
+      throw new Error('Resposta vazia do servidor');
+    }
+    
+    return JSON.parse(text) as T;
+  } catch (err) {
+    console.error('Erro ao parsear JSON:', err);
     throw new Error('Resposta inválida do servidor');
   }
-} // ✅ FUNÇÃO CORRETAMENTE FECHADA
+}
 
 // ============================================================
-// Auth
+// Auth - CORRIGIDO
 // ============================================================
 export const authApi = {
   login: async (email: string, password: string) => {
-    const data = await request<AuthResponse>('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const data = await request<AuthResponse>('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
 
-    console.log('LOGIN DATA:', data);
+      console.log('LOGIN DATA:', data);
 
-    if (!data?.token) {
-      throw new Error('Login falhou: token não recebido');
+      if (!data?.token) {
+        throw new Error('Login falhou: token não recebido');
+      }
+
+      if (!data?.refreshToken) {
+        throw new Error('Login falhou: refresh token não recebido');
+      }
+
+      localStorage.setItem('chatplay_token', data.token);
+      localStorage.setItem('chatplay_refresh_token', data.refreshToken);
+      
+      if (data.expiresAt) {
+        localStorage.setItem('chatplay_token_expires', data.expiresAt);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Erro no login:', error);
+      throw error;
     }
-
-    localStorage.setItem('chatplay_token', data.token);
-    localStorage.setItem('chatplay_refresh_token', data.refreshToken);
-
-    return data;
   },
 
   me: () =>
     request<{ user: User }>('/api/auth/me'),
 
-  logout: () =>
-    request<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }),
+  logout: async () => {
+    try {
+      const result = await request<{ ok: boolean }>('/api/auth/logout', { 
+        method: 'POST' 
+      });
+      clearTokens();
+      return result;
+    } catch (error) {
+      clearTokens();
+      throw error;
+    }
+  },
 };
 
 // ============================================================

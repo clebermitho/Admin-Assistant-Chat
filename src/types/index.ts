@@ -1,106 +1,123 @@
 // ============================================================
-// API Types — Chatplay Assistant Admin
+// User Types
 // ============================================================
-
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'AGENT';
-  isActive: boolean;
-  lastSeenAt: string | null;
-  createdAt: string;
-  organization?: string;
+  role: 'ADMIN' | 'USER' | 'VIEWER';
+  isActive?: boolean;
+  lastSeenAt?: string;
+  organization?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
 }
 
+// ============================================================
+// Auth Types
+// ============================================================
 export interface AuthResponse {
   token: string;
+  refreshToken: string;
+  expiresAt: string;
+  refreshExpiresAt: string;
   user: User;
 }
 
-// Metrics
-export interface MetricsSummary {
-  users: {
-    total: number;
-    active: number;
-  };
-  suggestions: {
-    total: number;
-    approvalRate: number;
-  };
-  feedback: {
-    total: number;
-    approved: number;
-    rejected: number;
-  };
-  events: {
-    total: number;
-    byType: Array<{ type: string; count: number }>;
-  };
+// ============================================================
+// Metrics Types
+// ============================================================
+export interface MetricsSummaryResponse {
+  totalEvents: number;
+  totalUsers: number;
+  activeUsers24h: number;
+  totalSuggestions: number;
+  acceptedSuggestions: number;
+  rejectedSuggestions: number;
+  averageResponseTime?: number;
 }
 
 export interface ActivityData {
-  days: number;
-  activity: Record<string, Record<string, number>>;
+  dates: string[];
+  events: number[];
+  suggestions: number[];
+  users: number[];
 }
 
-// Suggestions
+// ============================================================
+// Users Types
+// ============================================================
+export interface UsersResponse {
+  users: User[];
+  total: number;
+}
+
+// ============================================================
+// Suggestions Types
+// ============================================================
 export interface Suggestion {
   id: string;
   text: string;
-  score: number;
-  usageCount: number;
-  category?: string;
-}
-
-export interface RejectedFeedback {
-  id: string;
-  suggestion: {
-    text: string;
-    category: string;
-  };
-  reason: string;
-  createdAt: string;
-}
-
-// Templates
-export interface Template {
-  id: string;
   category: string;
-  text: string;
-  score: number;
-  usageCount: number;
-}
-
-// Settings
-export interface Settings {
-  [key: string]: string | number | boolean;
-}
-
-// API Response wrappers
-export interface UsersResponse {
-  users: User[];
+  confidence: number;
+  createdAt: string;
+  accepted?: boolean;
+  rejected?: boolean;
+  user?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface SuggestionsResponse {
   suggestions: Suggestion[];
+  total: number;
 }
 
 export interface RejectedFeedbackResponse {
-  rejected: RejectedFeedback[];
+  feedback: Array<{
+    id: string;
+    suggestionId: string;
+    reason: string;
+    comment?: string;
+    createdAt: string;
+    user?: {
+      id: string;
+      name: string;
+    };
+  }>;
+  total: number;
+}
+
+// ============================================================
+// Templates Types
+// ============================================================
+export interface Template {
+  id: string;
+  category: string;
+  text: string;
+  usageCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TemplatesResponse {
   templates: Template[];
+  categories: string[];
+}
+
+// ============================================================
+// Settings Types
+// ============================================================
+export interface Setting {
+  key: string;
+  value: string | number | boolean;
+  description?: string;
+  updatedAt: string;
 }
 
 export interface SettingsResponse {
-  settings: Settings;
-}
-
-export interface MetricsSummaryResponse {
-  users: MetricsSummary['users'];
-  suggestions: MetricsSummary['suggestions'];
-  feedback: MetricsSummary['feedback'];
-  events: MetricsSummary['events'];
+  settings: Setting[];
 }
