@@ -36,7 +36,7 @@ function clearTokens(): void {
 }
 
 // ============================================================
-// request — fetch com retry, timeout e refresh automático
+// Refresh token
 // ============================================================
 async function doRefresh(): Promise<string> {
   const rToken = getRefreshToken();
@@ -46,7 +46,7 @@ async function doRefresh(): Promise<string> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken: rToken }),
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(15000),
   });
 
   if (!res.ok) {
@@ -60,6 +60,9 @@ async function doRefresh(): Promise<string> {
   return data.token;
 }
 
+// ============================================================
+// REQUEST PADRÃO
+// ============================================================
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -78,7 +81,7 @@ async function request<T>(
     return fetch(url, {
       ...options,
       headers,
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(30000),
     });
   };
 
@@ -96,6 +99,7 @@ async function request<T>(
     }
   }
 
+  // Tratamento de erro HTTP
   if (!res.ok) {
     const text = await res.text();
     let message = `HTTP ${res.status}`;
@@ -106,15 +110,13 @@ async function request<T>(
     throw new Error(message);
   }
 
-  // 🔥 TRATAMENTO CORRETO DE RESPOSTA
+  // 🔥 LEITURA SEGURA DO JSON
   try {
-  return await res.json();
-} catch (err) {
-  console.error('Erro ao ler JSON');
-  throw new Error('Resposta inválida do servidor');
-}
-
-} // 👈 FECHA A FUNÇÃO request
+    return await res.json();
+  } catch {
+    throw new Error('Resposta inválida do servidor');
+  }
+} // ✅ FUNÇÃO CORRETAMENTE FECHADA
 
 // ============================================================
 // Auth
@@ -126,13 +128,11 @@ export const authApi = {
       body: JSON.stringify({ email, password }),
     });
 
-  const data = await request<AuthResponse>(...)
+    console.log('LOGIN DATA:', data);
 
-console.log('LOGIN DATA:', data);
-
-if (!data?.token) {
-    throw new Error('Login falhou: token não recebido');
-  }
+    if (!data?.token) {
+      throw new Error('Login falhou: token não recebido');
+    }
 
     localStorage.setItem('chatplay_token', data.token);
     localStorage.setItem('chatplay_refresh_token', data.refreshToken);
@@ -155,6 +155,7 @@ export const metricsApi = {
     const qs = since ? `?since=${encodeURIComponent(since)}` : '';
     return request<MetricsSummaryResponse>(`/api/metrics/summary${qs}`);
   },
+
   activity: (days = 7) =>
     request<ActivityData>(`/api/metrics/activity?days=${days}`),
 };
@@ -252,6 +253,7 @@ export const eventsApi = {
     if (params?.eventType) qs.set('eventType', params.eventType);
     if (params?.userId) qs.set('userId', params.userId);
     if (params?.limit) qs.set('limit', String(params.limit));
+
     return request<{ events: RecentEventsResponse['events']; total: number }>(
       `/api/events?${qs}`
     );
