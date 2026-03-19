@@ -107,23 +107,12 @@ async function request<T>(
   }
 
   // 🔥 TRATAMENTO CORRETO DE RESPOSTA
-  if (res.status === 204) {
-    return {} as T;
-  }
-
-  const text = await res.text();
-
-  if (!text) {
-    return {} as T;
-  }
-
   try {
-    return JSON.parse(text) as T;
-  } catch (err) {
-    console.error('Erro ao parsear JSON:', text);
-    throw new Error('Resposta inválida do servidor');
-  }
-} // 👈 FECHAMENTO CORRETO DA FUNÇÃO
+  return await res.json();
+} catch (err) {
+  console.error('Erro ao ler JSON');
+  throw new Error('Resposta inválida do servidor');
+}
 
 // ============================================================
 // Auth
