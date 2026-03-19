@@ -38,9 +38,6 @@ function clearTokens(): void {
 // ============================================================
 // request — fetch com retry, timeout e refresh automático
 // ============================================================
-let _isRefreshing = false;
-let _refreshQueue: Array<(token: string) => void> = [];
-
 async function doRefresh(): Promise<string> {
   const rToken = getRefreshToken();
   if (!rToken) throw new Error('Sem refresh token.');
@@ -100,48 +97,49 @@ async function request<T>(
   }
 
   if (!res.ok) {
+    const text = await res.text();
+    let message = `HTTP ${res.status}`;
+    try {
+      const json = JSON.parse(text);
+      message = json.error || json.message || message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  // 🔥 TRATAMENTO CORRETO DE RESPOSTA
+  if (res.status === 204) {
+    return {} as T;
+  }
+
   const text = await res.text();
-  let message = `HTTP ${res.status}`;
+
+  if (!text) {
+    return {} as T;
+  }
+
   try {
-    const json = JSON.parse(text);
-    message = json.error || json.message || message;
-  } catch {}
-  throw new Error(message);
-}
-
-// 🔥 NOVO BLOCO
-if (res.status === 204) {
-  return {} as T;
-}
-
-const text = await res.text();
-
-if (!text) {
-  return {} as T;
-}
-
-try {
-  return JSON.parse(text) as T;
-} catch (err) {
-  console.error('Erro ao parsear JSON:', text);
-  throw new Error('Resposta inválida do servidor');
-}
+    return JSON.parse(text) as T;
+  } catch (err) {
+    console.error('Erro ao parsear JSON:', text);
+    throw new Error('Resposta inválida do servidor');
+  }
+} // 👈 FECHAMENTO CORRETO DA FUNÇÃO
 
 // ============================================================
 // Auth
 // ============================================================
 export const authApi = {
   login: async (email: string, password: string) => {
-  const data = await request<AuthResponse>('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
+    const data = await request<AuthResponse>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
 
-  localStorage.setItem('chatplay_token', data.token);
-  localStorage.setItem('chatplay_refresh_token', data.refreshToken);
+    localStorage.setItem('chatplay_token', data.token);
+    localStorage.setItem('chatplay_refresh_token', data.refreshToken);
 
-  return data;
-},
+    return data;
+  },
 
   me: () =>
     request<{ user: User }>('/api/auth/me'),
@@ -230,10 +228,13 @@ export const settingsApi = {
     request<SettingsResponse>('/api/settings'),
 
   update: (key: string, value: string | number | boolean) =>
-    request<{ key: string; value: unknown }>(`/api/settings/${encodeURIComponent(key)}`, {
-      method: 'PUT',
-      body: JSON.stringify({ value }),
-    }),
+    request<{ key: string; value: unknown }>(
+      `/api/settings/${encodeURIComponent(key)}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ value }),
+      }
+    ),
 };
 
 // ============================================================
@@ -252,6 +253,8 @@ export const eventsApi = {
     if (params?.eventType) qs.set('eventType', params.eventType);
     if (params?.userId) qs.set('userId', params.userId);
     if (params?.limit) qs.set('limit', String(params.limit));
-    return request<{ events: RecentEventsResponse['events']; total: number }>(`/api/events?${qs}`);
+    return request<{ events: RecentEventsResponse['events']; total: number }>(
+      `/api/events?${qs}`
+    );
   },
 };
