@@ -47,27 +47,25 @@ async function doRefresh(): Promise<string> {
 
   const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ refreshToken: rToken }),
-  signal: AbortSignal.timeout(15_000),
-});
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken: rToken }),
+    signal: AbortSignal.timeout(15_000),
+  });
 
-if (!res.ok) {
-  clearTokens();
-  throw new Error('Sessão expirada. Faça login novamente.');
-}
+  if (!res.ok) {
+    clearTokens();
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
 
-const data = await res.json(); // 👈 só uma vez
+  const data = await res.json();
+  localStorage.setItem('chatplay_token', data.token);
 
-localStorage.setItem('chatplay_token', data.token);
-
-return data.token;
+  return data.token;
 }
 
 async function request<T>(
   path: string,
   options: RequestInit = {},
-  _retries = 2,
 ): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   const token = getToken();
@@ -89,29 +87,15 @@ async function request<T>(
 
   let res = await makeReq();
 
-  // Tentar refresh automático em 401
+  // Refresh automático
   if (res.status === 401 && getRefreshToken()) {
-    if (!_isRefreshing) {
-      _isRefreshing = true;
-      try {
-        const newToken = await doRefresh();
-        _refreshQueue.forEach(cb => cb(newToken));
-        _refreshQueue = [];
-        _isRefreshing = false;
-        res = await makeReq(newToken);
-      } catch {
-        _isRefreshing = false;
-        _refreshQueue = [];
-        clearTokens();
-        window.location.hash = '#/login';
-        throw new Error('Sessão expirada. Redirecionando para login.');
-      }
-    } else {
-      // Aguardar refresh em andamento
-      const newToken = await new Promise<string>(resolve => {
-        _refreshQueue.push(resolve);
-      });
+    try {
+      const newToken = await doRefresh();
       res = await makeReq(newToken);
+    } catch {
+      clearTokens();
+      window.location.hash = '#/login';
+      throw new Error('Sessão expirada.');
     }
   }
 
@@ -121,21 +105,21 @@ async function request<T>(
     try {
       const json = JSON.parse(text);
       message = json.error || json.message || message;
-    } catch { /* ignore */ }
+    } catch {}
     throw new Error(message);
   }
 
   const text = await res.text();
 
-if (!text) {
-  throw new Error('Resposta vazia do servidor');
-}
+  if (!text) {
+    throw new Error('Resposta vazia do servidor');
+  }
 
-try {
-  return JSON.parse(text) as T;
-} catch (err) {
-  console.error('Erro ao parsear JSON:', text);
-  throw new Error('Resposta inválida do servidor');
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new Error('Resposta inválida do servidor');
+  }
 }
 
 // ============================================================
@@ -143,16 +127,16 @@ try {
 // ============================================================
 export const authApi = {
   login: async (email: string, password: string) => {
-  const data = await request<AuthResponse>('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, password }),
-  });
+    const data = await request<AuthResponse>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
 
-  localStorage.setItem('chatplay_token', data.token);
-  localStorage.setItem('chatplay_refresh_token', data.refreshToken);
+    localStorage.setItem('chatplay_token', data.token);
+    localStorage.setItem('chatplay_refresh_token', data.refreshToken);
 
-  return data;
-},
+    return data;
+  },
 
   me: () =>
     request<{ user: User }>('/api/auth/me'),
@@ -183,19 +167,19 @@ export const usersApi = {
   create: (data: { name: string; email: string; password: string; role: string }) =>
     request<{ user: User }>('/api/users', {
       method: 'POST',
-      body:   JSON.stringify(data),
+      body: JSON.stringify(data),
     }),
 
   update: (id: string, data: { isActive?: boolean; role?: string; name?: string }) =>
     request<{ user: User }>(`/api/users/${id}`, {
       method: 'PATCH',
-      body:   JSON.stringify(data),
+      body: JSON.stringify(data),
     }),
 
   resetPassword: (id: string, newPassword: string) =>
     request<{ ok: boolean; message: string }>(`/api/users/${id}/reset-password`, {
       method: 'POST',
-      body:   JSON.stringify({ newPassword }),
+      body: JSON.stringify({ newPassword }),
     }),
 };
 
@@ -209,6 +193,7 @@ export const suggestionsApi = {
     params.set('limit', String(limit));
     return request<SuggestionsResponse>(`/api/suggestions?${params}`);
   },
+
   rejectedFeedback: () =>
     request<RejectedFeedbackResponse>('/api/feedback/rejected'),
 };
@@ -221,11 +206,13 @@ export const templatesApi = {
     const qs = category ? `?category=${encodeURIComponent(category)}` : '';
     return request<TemplatesResponse>(`/api/templates${qs}`);
   },
+
   create: (data: { category: string; text: string }) =>
     request<{ id: string; category: string; text: string }>('/api/templates', {
       method: 'POST',
-      body:   JSON.stringify(data),
+      body: JSON.stringify(data),
     }),
+
   delete: (id: string) =>
     request<{ ok: boolean }>(`/api/templates/${id}`, { method: 'DELETE' }),
 };
@@ -240,12 +227,12 @@ export const settingsApi = {
   update: (key: string, value: string | number | boolean) =>
     request<{ key: string; value: unknown }>(`/api/settings/${encodeURIComponent(key)}`, {
       method: 'PUT',
-      body:   JSON.stringify({ value }),
+      body: JSON.stringify({ value }),
     }),
 };
 
 // ============================================================
-// Events (admin — visão de atividade recente)
+// Events
 // ============================================================
 export const eventsApi = {
   recent: (filter?: 'errors' | 'ai' | 'auth', limit = 20) => {
@@ -254,11 +241,12 @@ export const eventsApi = {
     params.set('limit', String(limit));
     return request<RecentEventsResponse>(`/api/events/recent?${params}`);
   },
+
   list: (params?: { eventType?: string; userId?: string; limit?: number }) => {
     const qs = new URLSearchParams();
     if (params?.eventType) qs.set('eventType', params.eventType);
-    if (params?.userId)    qs.set('userId',    params.userId);
-    if (params?.limit)     qs.set('limit',     String(params.limit));
+    if (params?.userId) qs.set('userId', params.userId);
+    if (params?.limit) qs.set('limit', String(params.limit));
     return request<{ events: RecentEventsResponse['events']; total: number }>(`/api/events?${qs}`);
   },
 };
