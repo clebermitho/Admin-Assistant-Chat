@@ -117,16 +117,16 @@ async function request<T>(
 // ============================================================
 export const authApi = {
   login: async (email: string, password: string) => {
-    const data = await request<AuthResponse>('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
+  const data = await request<AuthResponse>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
 
-    localStorage.setItem('chatplay_token', data.token);
-    localStorage.setItem('chatplay_refresh_token', data.refreshToken);
+  localStorage.setItem('chatplay_token', data.token);
+  localStorage.setItem('chatplay_refresh_token', data.refreshToken);
 
-    return data;
-  },
+  return data;
+},
 
   me: () =>
     request<{ user: User }>('/api/auth/me'),
