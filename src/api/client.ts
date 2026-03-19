@@ -109,17 +109,7 @@ async function request<T>(
     throw new Error(message);
   }
 
-  const text = await res.text();
-
-  if (!text) {
-    throw new Error('Resposta vazia do servidor');
-  }
-
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    throw new Error('Resposta inválida do servidor');
-  }
+  return await res.json();
 }
 
 // ============================================================
