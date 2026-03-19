@@ -114,6 +114,8 @@ async function request<T>(
   throw new Error('Resposta inválida do servidor');
 }
 
+} // 👈 FECHA A FUNÇÃO request
+
 // ============================================================
 // Auth
 // ============================================================
@@ -124,9 +126,11 @@ export const authApi = {
       body: JSON.stringify({ email, password }),
     });
 
-  console.log('LOGIN DATA:', data); // 👈 AQUI DENTRO
+  const data = await request<AuthResponse>(...)
 
-  if (!data?.token) {
+console.log('LOGIN DATA:', data);
+
+if (!data?.token) {
     throw new Error('Login falhou: token não recebido');
   }
 
