@@ -1,0 +1,215 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+==========================================================================
+【AI HANDOVER NOTE】
+1. DESIGN PHILOSOPHY:
+   - Technical Documentation Excellence: Este sistema é projetado para documentação técnica de alto nível, focando em clareza, hierarquia visual e legibilidade prolongada
+   - Enterprise Dark-First: Paleta escura profissional inspirada em IDEs modernos (VS Code, JetBrains), com contraste otimizado para diagramas técnicos
+   - Information Architecture: Estrutura modular tipo Bento para separar conceitos complexos (queue vs ACID), com bordas sutis e espaçamento generoso
+   - Code-Centric Aesthetics: Tipografia monospace proeminente, syntax highlighting integrado, blocos de código com destaque
+
+2. TYPOGRAPHY:
+   - IBM Plex Sans: Escolhida por sua clareza técnica, excelente legibilidade em português (acentos bem desenhados), e herança IBM de documentação corporativa. Peso 400 para corpo, 600 para títulos técnicos
+   - IBM Plex Mono: Família coesa para código, logs e identificadores técnicos. Ligaduras desabilitadas para precisão em diagramas de fluxo
+   - Hierarquia: Títulos em Sans 600, corpo em Sans 400, código/tokens em Mono 500, comentários em Mono 400 com opacity reduzida
+
+3. COLOR SYSTEM:
+   - Brand (H=220): Azul técnico profundo, evocando confiabilidade de sistemas enterprise. Mapeia para --primary (botões CTA, links ativos) e --ring (foco de teclado)
+   - Accent (H=280): Roxo-violeta para destacar conceitos avançados (MVCC, SERIALIZABLE), usado em badges e callouts de arquitetura
+   - Semantic Colors:
+     * Success (H=150): Verde esmeralda para COMMIT, operações bem-sucedidas, checkmarks em comparações
+     * Warning (H=45): Âmbar para race conditions, alertas de concorrência, estados intermediários
+     * Destructive (H=10): Vermelho coral para ROLLBACK, erros de transação, lost updates
+   - Chart Colors: Paleta de 5 cores para diagramas de timeline (operações concorrentes), cada cor representa um thread/processo diferente
+   - Muted: Cinza azulado (H=220, baixa saturação) para comentários, metadados, bordas de containers
+
+4. USAGE GUIDE:
+   - Layout: Full-width dashboard com sidebar fixa (280px) para navegação de seções (Queue, ACID, Comparação, Race Conditions)
+   - Card System: Cada conceito técnico em card separado com border sutil, background levemente elevado (L +0.02 no dark mode)
+   - Code Blocks: background em muted, border-left accent de 3px para destacar, syntax highlighting com chart colors
+   - Diagramas: Usar SVG com cores do sistema, animações em @keyframes para fluxo de operações (duration: 2s, ease-in-out)
+   - Tables: Comparação ACID com alternating row colors (muted/background), header em primary com foreground invertido
+   - Interactive Elements: hover states com ring color, transition 150ms, focus-visible com outline de 2px
+   - Accessibility: Contraste mínimo 7:1 (AAA) para texto técnico, 4.5:1 para UI elements, suporte a prefers-reduced-motion
+   - Responsive: Sidebar collapsa em <1024px, diagramas empilham verticalmente, tabelas com horizontal scroll
+==========================================================================
+*/
+
+:root {
+  /* Typography */
+  --font-sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", "Fira Code", "Courier New", monospace;
+  
+  /* Radius */
+  --radius: 0.5rem;
+
+  /* Core UI Tokens */
+  --background: oklch(0.98 0.005 220);
+  --foreground: oklch(0.15 0.02 220);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.02 220);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.02 220);
+  --primary: oklch(0.45 0.15 220);
+  --primary-foreground: oklch(0.98 0.005 220);
+  --secondary: oklch(0.92 0.01 220);
+  --secondary-foreground: oklch(0.2 0.02 220);
+  --muted: oklch(0.94 0.008 220);
+  --muted-foreground: oklch(0.48 0.015 220);
+  --accent: oklch(0.55 0.18 280);
+  --accent-foreground: oklch(0.98 0.005 280);
+  --destructive: oklch(0.55 0.22 10);
+  --destructive-foreground: oklch(0.98 0.005 10);
+  --border: oklch(0.88 0.01 220);
+  --input: oklch(0.88 0.01 220);
+  --ring: oklch(0.45 0.15 220);
+  
+  /* Chart Tokens */
+  --chart-1: oklch(0.50 0.18 220);
+  --chart-2: oklch(0.52 0.20 280);
+  --chart-3: oklch(0.58 0.22 150);
+  --chart-4: oklch(0.60 0.20 45);
+  --chart-5: oklch(0.55 0.22 10);
+  
+  /* Sidebar Tokens */
+  --sidebar: oklch(0.96 0.008 220);
+  --sidebar-foreground: oklch(0.25 0.02 220);
+  --sidebar-primary: oklch(0.45 0.15 220);
+  --sidebar-primary-foreground: oklch(0.98 0.005 220);
+  --sidebar-accent: oklch(0.55 0.18 280);
+  --sidebar-accent-foreground: oklch(0.98 0.005 280);
+  --sidebar-border: oklch(0.88 0.01 220);
+  --sidebar-ring: oklch(0.45 0.15 220);
+}
+
+.dark {
+  --background: oklch(0.12 0.015 220);
+  --foreground: oklch(0.92 0.01 220);
+  --card: oklch(0.15 0.018 220);
+  --card-foreground: oklch(0.92 0.01 220);
+  --popover: oklch(0.14 0.018 220);
+  --popover-foreground: oklch(0.92 0.01 220);
+  --primary: oklch(0.65 0.20 220);
+  --primary-foreground: oklch(0.12 0.015 220);
+  --secondary: oklch(0.22 0.025 220);
+  --secondary-foreground: oklch(0.88 0.012 220);
+  --muted: oklch(0.20 0.020 220);
+  --muted-foreground: oklch(0.58 0.015 220);
+  --accent: oklch(0.68 0.24 280);
+  --accent-foreground: oklch(0.12 0.015 280);
+  --destructive: oklch(0.62 0.26 10);
+  --destructive-foreground: oklch(0.98 0.005 10);
+  --border: oklch(0.25 0.022 220);
+  --input: oklch(0.25 0.022 220);
+  --ring: oklch(0.65 0.20 220);
+  
+  /* Chart Tokens */
+  --chart-1: oklch(0.62 0.22 220);
+  --chart-2: oklch(0.65 0.24 280);
+  --chart-3: oklch(0.68 0.24 150);
+  --chart-4: oklch(0.70 0.22 45);
+  --chart-5: oklch(0.65 0.26 10);
+  
+  /* Sidebar Tokens */
+  --sidebar: oklch(0.10 0.018 220);
+  --sidebar-foreground: oklch(0.85 0.012 220);
+  --sidebar-primary: oklch(0.65 0.20 220);
+  --sidebar-primary-foreground: oklch(0.12 0.015 220);
+  --sidebar-accent: oklch(0.68 0.24 280);
+  --sidebar-accent-foreground: oklch(0.12 0.015 280);
+  --sidebar-border: oklch(0.22 0.022 220);
+  --sidebar-ring: oklch(0.65 0.20 220);
+}
+
+@theme inline {
+  /* Shadcn Core Mapping */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Charts Mapping */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar Mapping */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Typography */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  /* Radius */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans min-h-screen;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  code, pre {
+    @apply font-mono;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-primary;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40;
+  }
+}
