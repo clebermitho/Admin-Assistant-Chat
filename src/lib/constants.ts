@@ -52,4 +52,4 @@ export type UserRole = typeof USER_ROLES[number];
 // ============================================================
 console.log('🌐 API Base URL (backend):', API_BASE_URL);
 console.log('🔧 Ambiente:', import.meta.env.MODE);
-console.log('🚀 Admin URL:', 'https://assistant-chat-if83.onrender.com');
+console.log('🚀 Admin URL:', window.location.origin);
