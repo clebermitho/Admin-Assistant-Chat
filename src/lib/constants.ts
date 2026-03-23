@@ -24,6 +24,8 @@ export const ROUTE_PATHS = {
 export const API_BASE_URL: string =
   (import.meta.env.VITE_API_BASE_URL as string) ||
   'https://backend-assistant-0x1d.onrender.com';
+// export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+// export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // ============================================================
 // Categorias de sugestões (espelha o backend)

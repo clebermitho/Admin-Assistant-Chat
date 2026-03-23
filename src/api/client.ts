@@ -57,6 +57,7 @@ async function doRefresh(): Promise<string> {
 
   const data = await res.json();
   localStorage.setItem('chatplay_token', data.token);
+  localStorage.setItem('chatplay_refresh_token', data.refreshToken);
 
   if (data.expiresAt) {
     localStorage.setItem('chatplay_token_expires', data.expiresAt);
