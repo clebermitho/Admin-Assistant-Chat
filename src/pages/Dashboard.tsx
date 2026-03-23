@@ -1,9 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-<<<<<<< HEAD
-import { Users, MessageSquare, CheckCircle, Activity, TrendingUp } from 'lucide-react';
-=======
 import { Users, MessageSquare, CheckCircle, Activity, TrendingUp, Clock, BookOpen } from 'lucide-react';
->>>>>>> f0e33cb (Atualização correções)
 import { metricsApi } from '@/api/client';
 import type { MetricsSummaryResponse, ActivityData } from '@/types';
 import {
@@ -152,16 +148,10 @@ export default function DashboardPage() {
     <div>
       <PageHeader title="Dashboard" description="Visão geral do sistema Chatplay" />
 
-      {/* Metric Cards */}
-<<<<<<< HEAD
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-=======
+      {/* Metric Cards — 6 cards em grid 2x3 */}
       <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
->>>>>>> f0e33cb (Atualização correções)
         ) : summary ? (
           <>
             <MetricCard
@@ -192,15 +182,11 @@ export default function DashboardPage() {
               icon={<Activity className="w-4 h-4" />}
               color="#f59e0b"
             />
-<<<<<<< HEAD
-=======
             <MetricCard
               label="Tempo Médio API"
               value={
                 summary.suggestions.avgLatencyMs != null
                   ? `${(summary.suggestions.avgLatencyMs / 1000).toFixed(1)}s`
-                  : summary.performance?.avgApiTimeMs != null
-                  ? `${(summary.performance.avgApiTimeMs / 1000).toFixed(1)}s`
                   : '—'
               }
               sub="latência de sugestões"
@@ -218,7 +204,6 @@ export default function DashboardPage() {
               icon={<BookOpen className="w-4 h-4" />}
               color="#34d399"
             />
->>>>>>> f0e33cb (Atualização correções)
           </>
         ) : null}
       </div>

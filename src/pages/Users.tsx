@@ -178,6 +178,8 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [toggling, setToggling] = useState<Set<string>>(new Set());
+  const [toggleError, setToggleError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -196,13 +198,6 @@ export default function UsersPage() {
 
   const handleToggle = async (id: string, isActive: boolean) => {
     setToggling((prev) => new Set(prev).add(id));
-<<<<<<< HEAD
-    try {
-      const res = await usersApi.update(id, { isActive });
-      setUsers((prev) => prev.map((u) => (u.id === id ? res.user : u)));
-    } catch {
-      // silently fail
-=======
     setToggleError(null);
     try {
       const res = await usersApi.update(id, { isActive });
@@ -212,7 +207,6 @@ export default function UsersPage() {
       setToggleError(msg);
       // Limpa o erro após 4s
       setTimeout(() => setToggleError(null), 4000);
->>>>>>> f0e33cb (Atualização correções)
     } finally {
       setToggling((prev) => {
         const next = new Set(prev);
@@ -238,8 +232,6 @@ export default function UsersPage() {
         }
       />
 
-<<<<<<< HEAD
-=======
       {toggleError && (
         <div className="mb-4 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive flex items-center gap-2">
           <span>⚠️</span>
@@ -252,7 +244,6 @@ export default function UsersPage() {
           <span>{resetSuccess}</span>
         </div>
       )}
->>>>>>> f0e33cb (Atualização correções)
       {error ? (
         <ErrorState message={error} onRetry={load} />
       ) : (

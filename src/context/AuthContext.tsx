@@ -26,28 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token,     setToken]     = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
   const [isLoading, setIsLoading] = useState(true);
 
-<<<<<<< HEAD
-  // Validar token ao montar
-=======
   // Validar token ao montar — com tolerância ao cold start do Render (free tier)
->>>>>>> f0e33cb (Atualização correções)
   useEffect(() => {
     const stored = localStorage.getItem(TOKEN_KEY);
     if (!stored) { setIsLoading(false); return; }
 
     setToken(stored);
-<<<<<<< HEAD
-    authApi.me()
-      .then(res => setUser(res.user))
-      .catch(() => {
-        // Token inválido — limpar e pedir novo login
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
-        setToken(null);
-        setUser(null);
-      })
-      .finally(() => setIsLoading(false));
-=======
 
     const tryValidate = async (attempt = 1): Promise<void> => {
       try {
@@ -86,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     tryValidate().finally(() => setIsLoading(false));
->>>>>>> f0e33cb (Atualização correções)
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

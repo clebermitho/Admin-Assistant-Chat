@@ -57,7 +57,7 @@ async function doRefresh(): Promise<string> {
 
   const data = await res.json();
   localStorage.setItem('chatplay_token', data.token);
-  
+
   if (data.expiresAt) {
     localStorage.setItem('chatplay_token_expires', data.expiresAt);
   }
@@ -66,7 +66,7 @@ async function doRefresh(): Promise<string> {
 }
 
 // ============================================================
-// REQUEST PADRÃO - CORRIGIDO
+// REQUEST PADRÃO
 // ============================================================
 async function request<T>(
   path: string,
@@ -92,7 +92,7 @@ async function request<T>(
 
   let res = await makeReq();
 
-  // Refresh automático
+  // Refresh automático em 401
   if (res.status === 401 && getRefreshToken()) {
     try {
       const newToken = await doRefresh();
@@ -111,19 +111,18 @@ async function request<T>(
     try {
       const json = JSON.parse(text);
       message = json.error || json.message || message;
-    } catch {}
-    throw new Error(message);
+    } catch { /* mantém mensagem genérica */ }
+    const err = new Error(message) as Error & { status: number };
+    err.status = res.status;
+    throw err;
   }
 
-  // LEITURA SEGURA DO JSON - MELHORADA
+  // Leitura segura do JSON
   try {
     const text = await res.text();
-    
-    // Se a resposta estiver vazia
     if (!text || text.trim() === '') {
       throw new Error('Resposta vazia do servidor');
     }
-    
     return JSON.parse(text) as T;
   } catch (err) {
     console.error('Erro ao parsear JSON:', err);
@@ -132,7 +131,7 @@ async function request<T>(
 }
 
 // ============================================================
-// Auth - CORRIGIDO
+// Auth
 // ============================================================
 export const authApi = {
   login: async (email: string, password: string) => {
@@ -142,19 +141,11 @@ export const authApi = {
         body: JSON.stringify({ email, password }),
       });
 
-      console.log('LOGIN DATA:', data);
-
-      if (!data?.token) {
-        throw new Error('Login falhou: token não recebido');
-      }
-
-      if (!data?.refreshToken) {
-        throw new Error('Login falhou: refresh token não recebido');
-      }
+      if (!data?.token) throw new Error('Login falhou: token não recebido');
+      if (!data?.refreshToken) throw new Error('Login falhou: refresh token não recebido');
 
       localStorage.setItem('chatplay_token', data.token);
       localStorage.setItem('chatplay_refresh_token', data.refreshToken);
-      
       if (data.expiresAt) {
         localStorage.setItem('chatplay_token_expires', data.expiresAt);
       }
@@ -171,9 +162,7 @@ export const authApi = {
 
   logout: async () => {
     try {
-      const result = await request<{ ok: boolean }>('/api/auth/logout', { 
-        method: 'POST' 
-      });
+      const result = await request<{ ok: boolean }>('/api/auth/logout', { method: 'POST' });
       clearTokens();
       return result;
     } catch (error) {
@@ -271,8 +260,6 @@ export const settingsApi = {
         body: JSON.stringify({ value }),
       }
     ),
-<<<<<<< HEAD
-=======
 
   /** Salva múltiplas settings em uma única requisição (PUT /api/settings/bulk) */
   bulkUpdate: (settings: Record<string, string | number | boolean>) =>
@@ -301,7 +288,6 @@ export const settingsApi = {
         ),
       }));
     }),
->>>>>>> f0e33cb (Atualização correções)
 };
 
 // ============================================================

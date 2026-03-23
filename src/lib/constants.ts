@@ -18,15 +18,12 @@ export const ROUTE_PATHS = {
 
 // ============================================================
 // API BASE URL - BACKEND NO RENDER
-// 🔥 URL DO SEU BACKEND: https://assistant-chat-if83.onrender.com
+// ✅ URL DO BACKEND (Node.js/Express): https://backend-assistant-0x1d.onrender.com
+// ⚠️  NÃO usar a URL do admin aqui — o admin chama o backend, não a si mesmo
 // ============================================================
-
-// URL fixa do backend no Render
-export const API_BASE_URL: string = 'https://assistant-chat-if83.onrender.com';
-
-// Se quiser usar variável de ambiente (recomendado para flexibilidade)
-// export const API_BASE_URL: string = 
-//   (import.meta.env.VITE_API_BASE_URL as string) || 'https://assistant-chat-if83.onrender.com';
+export const API_BASE_URL: string =
+  (import.meta.env.VITE_API_BASE_URL as string) ||
+  'https://backend-assistant-0x1d.onrender.com';
 
 // ============================================================
 // Categorias de sugestões (espelha o backend)
@@ -51,6 +48,6 @@ export type UserRole = typeof USER_ROLES[number];
 // ============================================================
 // Log de configuração
 // ============================================================
-console.log('🌐 API Base URL:', API_BASE_URL);
+console.log('🌐 API Base URL (backend):', API_BASE_URL);
 console.log('🔧 Ambiente:', import.meta.env.MODE);
-console.log('🚀 Admin URL:', 'https://admin-assistant-chat.onrender.com');
+console.log('🚀 Admin URL:', 'https://assistant-chat-if83.onrender.com');

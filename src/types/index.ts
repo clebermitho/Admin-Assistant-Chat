@@ -5,9 +5,10 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'USER' | 'VIEWER';
+  role: 'AGENT' | 'ADMIN' | 'SUPER_ADMIN';
   isActive?: boolean;
-  lastSeenAt?: string;
+  lastSeenAt?: string | null;
+  organizationId?: string;
   organization?: {
     id: string;
     name: string;
@@ -28,22 +29,38 @@ export interface AuthResponse {
 
 // ============================================================
 // Metrics Types
+// Alinhado com GET /api/metrics/summary do backend
 // ============================================================
 export interface MetricsSummaryResponse {
-  totalEvents: number;
-  totalUsers: number;
-  activeUsers24h: number;
-  totalSuggestions: number;
-  acceptedSuggestions: number;
-  rejectedSuggestions: number;
-  averageResponseTime?: number;
+  period: { since: string; until: string };
+  users: {
+    total: number;
+    active: number;
+  };
+  suggestions: {
+    total: number;
+    approvalRate: number;
+    avgLatencyMs: number | null;
+  };
+  feedback: {
+    total: number;
+    approved: number;
+    rejected: number;
+  };
+  events: {
+    total: number;
+    byType: Array<{ type: string; count: number }>;
+  };
+  templates: {
+    total: number;
+    learned: number;
+  };
+  topUsers: Array<{ userId: string; events: number }>;
 }
 
 export interface ActivityData {
-  dates: string[];
-  events: number[];
-  suggestions: number[];
-  users: number[];
+  days: number;
+  activity: Record<string, Record<string, number>>;
 }
 
 // ============================================================
@@ -51,7 +68,6 @@ export interface ActivityData {
 // ============================================================
 export interface UsersResponse {
   users: User[];
-  total: number;
 }
 
 // ============================================================
@@ -61,32 +77,31 @@ export interface Suggestion {
   id: string;
   text: string;
   category: string;
-  confidence: number;
-  createdAt: string;
-  accepted?: boolean;
-  rejected?: boolean;
-  user?: {
-    id: string;
-    name: string;
-  };
+  score: number;
+  usageCount: number;
+  source: 'AI' | 'TEMPLATE' | 'MANUAL';
+  createdAt?: string;
 }
 
 export interface SuggestionsResponse {
   suggestions: Suggestion[];
-  total: number;
 }
 
 export interface RejectedFeedbackResponse {
-  feedback: Array<{
+  rejected: Array<{
     id: string;
     suggestionId: string;
-    reason: string;
-    comment?: string;
+    reason?: string | null;
     createdAt: string;
+    suggestion?: {
+      id: string;
+      text: string;
+      category: string;
+    } | null;
     user?: {
       id: string;
       name: string;
-    };
+    } | null;
   }>;
   total: number;
 }
@@ -98,26 +113,24 @@ export interface Template {
   id: string;
   category: string;
   text: string;
+  score: number;
   usageCount: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface TemplatesResponse {
   templates: Template[];
-  categories: string[];
 }
 
 // ============================================================
 // Settings Types
 // ============================================================
-export interface Setting {
-  key: string;
-  value: string | number | boolean;
-  description?: string;
-  updatedAt: string;
-}
+export type SettingValue = string | number | boolean;
+
+export type Settings = Record<string, SettingValue>;
 
 export interface SettingsResponse {
-  settings: Setting[];
+  settings: Settings;
 }

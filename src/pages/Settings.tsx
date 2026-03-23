@@ -15,47 +15,6 @@ interface SettingField {
   step?: number;
 }
 
-<<<<<<< HEAD
-const SETTING_FIELDS: SettingField[] = [
-  {
-    key: 'suggestion.model',
-    label: 'Modelo OpenAI',
-    description: 'Modelo usado para gerar sugestões de resposta.',
-    type: 'text',
-  },
-  {
-    key: 'suggestion.temperature',
-    label: 'Temperatura',
-    description: 'Controla a criatividade das respostas (0 = determinístico, 1 = criativo).',
-    type: 'number',
-    min: 0,
-    max: 2,
-    step: 0.1,
-  },
-  {
-    key: 'suggestion.maxTokens',
-    label: 'Máximo de Tokens',
-    description: 'Número máximo de tokens gerados por resposta.',
-    type: 'number',
-    min: 100,
-    max: 4000,
-    step: 50,
-  },
-  {
-    key: 'suggestion.learnFromApproved',
-    label: 'Aprender com Aprovadas',
-    description: 'Usar sugestões aprovadas para melhorar o modelo.',
-    type: 'toggle',
-  },
-  {
-    key: 'suggestion.filterRejected',
-    label: 'Filtrar Reprovadas',
-    description: 'Evitar sugestões similares a reprovadas anteriores.',
-    type: 'toggle',
-  },
-];
-
-=======
 // ── Grupos de configuração ──────────────────────────────────────
 interface SettingGroup {
   label: string;
@@ -210,10 +169,9 @@ const SETTING_GROUPS: SettingGroup[] = [
   },
 ];
 
-// Flatten para compatibilidade interna (lookups por key)
+// Flatten para lookups por key
 const SETTING_FIELDS: SettingField[] = SETTING_GROUPS.flatMap(g => g.fields);
 
->>>>>>> f0e33cb (Atualização correções)
 // ---- Toggle field ----
 function ToggleField({
   value,
@@ -273,15 +231,6 @@ export default function SettingsPage() {
     setSaving(true);
     setSaved(false);
     try {
-<<<<<<< HEAD
-      // Find changed keys
-      const changedKeys = Object.keys(localSettings).filter(
-        (k) => localSettings[k] !== settings[k]
-      );
-      await Promise.all(
-        changedKeys.map((k) => settingsApi.update(k, localSettings[k]))
-      );
-=======
       // Apenas chaves alteradas
       const changedKeys = Object.keys(localSettings).filter(
         (k) => localSettings[k] !== settings[k]
@@ -295,12 +244,11 @@ export default function SettingsPage() {
       );
       // Bulk update preferido — fallback automático no client
       await settingsApi.bulkUpdate(changedSettings);
->>>>>>> f0e33cb (Atualização correções)
       setSettings(localSettings);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch {
-      // silently fail (user would see no feedback on specific error)
+      // silently fail
     } finally {
       setSaving(false);
     }
@@ -351,75 +299,6 @@ export default function SettingsPage() {
             ))}
           </Card>
         ) : (
-<<<<<<< HEAD
-          <Card className="divide-y divide-border">
-            {SETTING_FIELDS.map((field) => {
-              const raw = localSettings[field.key];
-              const value =
-                field.type === 'toggle'
-                  ? raw === true || raw === 'true'
-                  : raw ?? '';
-
-              return (
-                <div key={field.key} className="px-6 py-5">
-                  <div className="flex items-start justify-between gap-6">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground mb-0.5">{field.label}</p>
-                      <p className="text-xs text-muted-foreground">{field.description}</p>
-                      <p className="text-[10px] text-muted-foreground/60 font-mono mt-0.5">{field.key}</p>
-                    </div>
-                    <div className="shrink-0 mt-1">
-                      {field.type === 'toggle' ? (
-                        <ToggleField
-                          value={value as boolean}
-                          onChange={(v) => handleChange(field.key, v)}
-                        />
-                      ) : field.type === 'number' ? (
-                        <input
-                          type="number"
-                          value={value as number}
-                          min={field.min}
-                          max={field.max}
-                          step={field.step}
-                          onChange={(e) =>
-                            handleChange(field.key, parseFloat(e.target.value))
-                          }
-                          className="w-32 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground text-right focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={value as string}
-                          onChange={(e) => handleChange(field.key, e.target.value)}
-                          className="w-48 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Unknown settings */}
-            {Object.keys(localSettings)
-              .filter((k) => !SETTING_FIELDS.some((f) => f.key === k))
-              .map((key) => (
-                <div key={key} className="px-6 py-4">
-                  <div className="flex items-center justify-between gap-6">
-                    <div>
-                      <p className="text-xs text-muted-foreground font-mono">{key}</p>
-                    </div>
-                    <input
-                      type="text"
-                      value={String(localSettings[key])}
-                      onChange={(e) => handleChange(key, e.target.value)}
-                      className="w-48 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
-                    />
-                  </div>
-                </div>
-              ))}
-          </Card>
-=======
           <div className="space-y-6">
             {SETTING_GROUPS.map((group) => (
               <Card key={group.label} className="divide-y divide-border">
@@ -476,8 +355,33 @@ export default function SettingsPage() {
                 })}
               </Card>
             ))}
+
+            {/* Chaves desconhecidas (não mapeadas nos grupos acima) */}
+            {Object.keys(localSettings)
+              .filter((k) => !SETTING_FIELDS.some((f) => f.key === k))
+              .map((key) => (
+                <Card key={key} className="divide-y divide-border">
+                  <div className="px-6 py-3 bg-muted/30">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      ⚙️ Outras Configurações
+                    </p>
+                  </div>
+                  <div className="px-6 py-4">
+                    <div className="flex items-center justify-between gap-6">
+                      <div>
+                        <p className="text-xs text-muted-foreground font-mono">{key}</p>
+                      </div>
+                      <input
+                        type="text"
+                        value={String(localSettings[key])}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                        className="w-48 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                      />
+                    </div>
+                  </div>
+                </Card>
+              ))}
           </div>
->>>>>>> f0e33cb (Atualização correções)
         )}
 
         {/* Reset button */}
