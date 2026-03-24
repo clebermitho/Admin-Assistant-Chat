@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -10,6 +11,8 @@ import {
   Activity,
   ChevronRight,
   Clock,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTE_PATHS } from '@/lib/constants';
@@ -33,6 +36,19 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const themeKey = 'chatplay_admin_theme';
+  const initialTheme = useMemo(() => {
+    const t = window.localStorage.getItem(themeKey);
+    return t === 'light' ? 'light' : 'dark';
+  }, []);
+  const [theme, setTheme] = useState<'dark' | 'light'>(initialTheme);
+
+  useEffect(() => {
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+    window.localStorage.setItem(themeKey, theme);
+  }, [theme]);
+
   const handleLogout = async () => {
     await logout();
     navigate(ROUTE_PATHS.LOGIN);
@@ -42,8 +58,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <aside
-        className="w-[240px] shrink-0 flex flex-col border-r border-border"
-        style={{ background: 'oklch(0.10 0.018 220)' }}
+        className="w-[240px] shrink-0 flex flex-col border-r border-border bg-sidebar"
       >
         {/* Logo */}
         <div className="h-[60px] flex items-center gap-3 px-5 border-b border-border">
@@ -102,8 +117,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
         <header
-          className="h-[60px] shrink-0 flex items-center justify-between px-6 border-b border-border"
-          style={{ background: 'oklch(0.12 0.015 220)' }}
+          className="h-[60px] shrink-0 flex items-center justify-between px-6 border-b border-border bg-card"
         >
           <div />
           <div className="flex items-center gap-4">
@@ -111,6 +125,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <p className="text-sm font-medium text-foreground">{user?.name}</p>
               <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md hover:bg-muted"
+              type="button"
+              aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
+              title={theme === 'dark' ? 'Tema claro' : 'Tema escuro'}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            </button>
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive transition-colors px-3 py-1.5 rounded-md hover:bg-destructive/10"
