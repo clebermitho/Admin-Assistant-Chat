@@ -116,6 +116,12 @@ const SETTING_GROUPS: SettingGroup[] = [
     label: '📚 Aprendizado e Qualidade',
     fields: [
       {
+        key: 'suggestion.autoSuggest',
+        label: 'Sugestões automáticas',
+        description: 'Habilita a geração automática de sugestões na extensão (quando suportado).',
+        type: 'toggle',
+      },
+      {
         key: 'suggestion.learnFromApproved',
         label: 'Aprender com Aprovadas',
         description: 'Usar sugestões aprovadas como exemplos para melhorar futuras respostas.',
