@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Users,
   MessageSquare,
+  MessageSquareText,
   FileText,
   Settings,
   LogOut,
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { to: ROUTE_PATHS.USERS,       icon: Users,           label: 'Usuários' },
   { to: ROUTE_PATHS.SUGGESTIONS, icon: MessageSquare,   label: 'Sugestões' },
   { to: ROUTE_PATHS.TEMPLATES,   icon: FileText,        label: 'Templates' },
+  { to: ROUTE_PATHS.PROMPTS,     icon: MessageSquareText, label: 'Prompts' },
   { to: ROUTE_PATHS.SETTINGS,    icon: Settings,        label: 'Configurações' },
   { to: ROUTE_PATHS.EVENTS,      icon: Clock,           label: 'Eventos' },
 ] as const;

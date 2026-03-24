@@ -12,6 +12,7 @@ export const ROUTE_PATHS = {
   USERS:       '/users',
   SUGGESTIONS: '/suggestions',
   TEMPLATES:   '/templates',
+  PROMPTS: '/prompts',
   SETTINGS:    '/settings',
   EVENTS:      '/events',
 } as const;

@@ -9,6 +9,7 @@ import DashboardPage  from '@/pages/Dashboard';
 import UsersPage      from '@/pages/Users';
 import SuggestionsPage from '@/pages/Suggestions';
 import TemplatesPage  from '@/pages/Templates';
+import PromptsPage    from '@/pages/Prompts';
 import SettingsPage   from '@/pages/Settings';
 import EventsPage     from '@/pages/Events';
 import NotFound       from '@/pages/NotFound';
@@ -35,6 +36,7 @@ export default function App() {
           <Route path={ROUTE_PATHS.USERS}        element={<Protected><UsersPage /></Protected>} />
           <Route path={ROUTE_PATHS.SUGGESTIONS}  element={<Protected><SuggestionsPage /></Protected>} />
           <Route path={ROUTE_PATHS.TEMPLATES}    element={<Protected><TemplatesPage /></Protected>} />
+          <Route path={ROUTE_PATHS.PROMPTS}      element={<Protected><PromptsPage /></Protected>} />
           <Route path={ROUTE_PATHS.SETTINGS}     element={<Protected><SettingsPage /></Protected>} />
           <Route path={ROUTE_PATHS.EVENTS}       element={<Protected><EventsPage /></Protected>} />
 
