@@ -9,6 +9,52 @@ const KEYS = {
   chat: 'prompt.chat',
 } as const;
 
+const DEFAULT_SUGGESTIONS_PROMPT = `Você é um assistente especializado do Coren (Conselho Regional de Enfermagem).
+
+BASE COREN:
+{{BASE_COREN}}
+
+BASE SISTEMA:
+{{BASE_SISTEMA}}
+
+REGRAS:
+1. Nunca chame o profissional de "cliente" — use "profissional".
+2. Não invente leis, resoluções ou procedimentos.
+3. Respostas curtas, claras, objetivas e com tom institucional.
+4. Em débitos, sempre conduza para regularização.
+5. Nunca confirme valores de parcelas — informe que verificará no sistema.
+{{AVOID_BLOCK}}
+{{EXAMPLES_BLOCK}}
+
+CONTEXTO DA CONVERSA:
+{{CONTEXT}}
+
+PERGUNTA PRINCIPAL:
+{{QUESTION}}
+
+Gere exatamente 3 respostas profissionais e objetivas para esta situação.
+Separe cada resposta por uma linha em branco.
+NÃO use numeração nem prefixos como "Resposta 1:".`;
+
+const DEFAULT_CHAT_PROMPT = `Você é um assistente inteligente do Coren que ajuda operadores humanos.
+
+BASE COREN:
+{{BASE_COREN}}
+
+BASE SISTEMA:
+{{BASE_SISTEMA}}
+
+CONTEXTO (se houver):
+{{CONTEXT}}
+
+HISTÓRICO (se houver):
+{{HISTORY}}
+
+MENSAGEM DO OPERADOR:
+{{MESSAGE}}
+
+IMPORTANTE: Responda de forma natural, clara e útil. Use emojis quando apropriado.`;
+
 export default function PromptsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,8 +71,10 @@ export default function PromptsPage() {
     try {
       const res = await settingsApi.list();
       const s = (res?.settings || {}) as Settings;
-      setSuggestionsPrompt(typeof s[KEYS.suggestions] === 'string' ? String(s[KEYS.suggestions]) : '');
-      setChatPrompt(typeof s[KEYS.chat] === 'string' ? String(s[KEYS.chat]) : '');
+      const sp = typeof s[KEYS.suggestions] === 'string' ? String(s[KEYS.suggestions]) : '';
+      const cp = typeof s[KEYS.chat] === 'string' ? String(s[KEYS.chat]) : '';
+      setSuggestionsPrompt(sp.trim().length > 0 ? sp : DEFAULT_SUGGESTIONS_PROMPT);
+      setChatPrompt(cp.trim().length > 0 ? cp : DEFAULT_CHAT_PROMPT);
     } catch (e: any) {
       setError(e?.message || 'Erro ao carregar prompts.');
     } finally {
@@ -112,7 +160,7 @@ export default function PromptsPage() {
             value={suggestionsPrompt}
             onChange={(e) => setSuggestionsPrompt(e.target.value)}
             className="w-full min-h-[240px] rounded-md border border-border bg-background px-3 py-2 text-sm font-mono"
-            placeholder="Deixe vazio para usar o prompt padrão do sistema."
+            placeholder="Prompt de sugestões..."
           />
         </Card>
 
@@ -127,11 +175,10 @@ export default function PromptsPage() {
             value={chatPrompt}
             onChange={(e) => setChatPrompt(e.target.value)}
             className="w-full min-h-[240px] rounded-md border border-border bg-background px-3 py-2 text-sm font-mono"
-            placeholder="Deixe vazio para usar o prompt padrão do sistema."
+            placeholder="Prompt do chat..."
           />
         </Card>
       </div>
     </div>
   );
 }
-
