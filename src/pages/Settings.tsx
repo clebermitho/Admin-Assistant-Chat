@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Save, RefreshCw, ToggleLeft, ToggleRight } from 'lucide-react';
-import { settingsApi } from '@/api/client';
+import { quotaApi, settingsApi } from '@/api/client';
 import type { Settings } from '@/types';
 import { Card, PageHeader, SkeletonBox, ErrorState, Spinner } from '@/components/SharedUI';
 
@@ -213,6 +213,15 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const [quota, setQuota] = useState<null | {
+    period: string;
+    monthlyQuota: number;
+    usedTokens: number;
+    remaining: number;
+  }>(null);
+  const [quotaMonthly, setQuotaMonthly] = useState<number | ''>('');
+  const [quotaBusy, setQuotaBusy] = useState(false);
+
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -220,6 +229,11 @@ export default function SettingsPage() {
       const res = await settingsApi.list();
       setSettings(res.settings);
       setLocalSettings(res.settings);
+      const q = await quotaApi.get().catch(() => null);
+      if (q) {
+        setQuota({ period: q.period, monthlyQuota: q.monthlyQuota, usedTokens: q.usedTokens, remaining: q.remaining });
+        setQuotaMonthly(q.monthlyQuota);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro ao carregar configurações.');
     } finally {
@@ -387,6 +401,68 @@ export default function SettingsPage() {
                   </div>
                 </Card>
               ))}
+
+            <Card className="p-6 space-y-3">
+              <div className="flex items-start justify-between gap-6">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground mb-0.5">💳 Quota mensal de IA</p>
+                  <p className="text-xs text-muted-foreground">
+                    Controla o limite mensal de tokens por organização e permite resetar o consumo.
+                  </p>
+                  {quota && (
+                    <p className="text-[11px] text-muted-foreground/70 mt-1">
+                      Período: {quota.period} • Usado: {quota.usedTokens.toLocaleString()} • Restante: {quota.remaining.toLocaleString()}
+                    </p>
+                  )}
+                </div>
+                <div className="shrink-0 mt-1 flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={quotaMonthly}
+                    min={0}
+                    step={1000}
+                    onChange={(e) => setQuotaMonthly(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-40 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground text-right focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                    placeholder="Monthly quota"
+                  />
+                  <button
+                    type="button"
+                    disabled={quotaBusy || quotaMonthly === '' || typeof quotaMonthly !== 'number'}
+                    onClick={async () => {
+                      if (quotaMonthly === '' || typeof quotaMonthly !== 'number') return;
+                      setQuotaBusy(true);
+                      try {
+                        const q = await quotaApi.update(quotaMonthly);
+                        setQuota({ period: q.period, monthlyQuota: q.monthlyQuota, usedTokens: q.usedTokens, remaining: q.remaining });
+                        setQuotaMonthly(q.monthlyQuota);
+                      } finally {
+                        setQuotaBusy(false);
+                      }
+                    }}
+                    className="px-3 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {quotaBusy ? '...' : 'Aplicar'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={quotaBusy}
+                    onClick={async () => {
+                      setQuotaBusy(true);
+                      try {
+                        const q = await quotaApi.reset();
+                        setQuota({ period: q.period, monthlyQuota: q.monthlyQuota, usedTokens: q.usedTokens, remaining: q.remaining });
+                        setQuotaMonthly(q.monthlyQuota);
+                      } finally {
+                        setQuotaBusy(false);
+                      }
+                    }}
+                    className="px-3 py-2 rounded-lg text-sm font-medium border border-border bg-card hover:bg-muted disabled:opacity-50"
+                  >
+                    Resetar
+                  </button>
+                </div>
+              </div>
+            </Card>
           </div>
         )}
 

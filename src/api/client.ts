@@ -291,6 +291,41 @@ export const settingsApi = {
     }),
 };
 
+export const quotaApi = {
+  get: () =>
+    request<{
+      period: string;
+      organization: { id: string; name: string };
+      monthlyQuota: number;
+      usedTokens: number;
+      remaining: number;
+    }>('/api/quota'),
+
+  update: (monthlyQuota: number) =>
+    request<{
+      period: string;
+      organization: { id: string; name: string };
+      monthlyQuota: number;
+      usedTokens: number;
+      remaining: number;
+    }>('/api/quota', {
+      method: 'PUT',
+      body: JSON.stringify({ monthlyQuota }),
+    }),
+
+  reset: () =>
+    request<{
+      period: string;
+      organization: { id: string; name: string };
+      monthlyQuota: number;
+      usedTokens: number;
+      remaining: number;
+    }>('/api/quota', {
+      method: 'PUT',
+      body: JSON.stringify({ resetUsedTokens: true }),
+    }),
+};
+
 // ============================================================
 // Events
 // ============================================================
