@@ -193,13 +193,16 @@ export const usersApi = {
   list: () =>
     request<UsersResponse>('/api/users'),
 
+  get: (id: string) =>
+    request<{ user: User & { stats?: Record<string, unknown> } }>(`/api/users/${id}`),
+
   create: (data: { name: string; email: string; password: string; role: string }) =>
     request<{ user: User }>('/api/users', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  update: (id: string, data: { isActive?: boolean; role?: string; name?: string }) =>
+  update: (id: string, data: { isActive?: boolean; role?: string; name?: string; dailyChatLimit?: number | null; dailySuggestionLimit?: number | null }) =>
     request<{ user: User }>(`/api/users/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),

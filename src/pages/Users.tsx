@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   UserPlus,
   MoreHorizontal,
@@ -173,6 +174,7 @@ function ToggleActive({ user, onToggle, loading }: ToggleActiveProps) {
 
 // ---- Main ----
 export default function UsersPage() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -279,13 +281,26 @@ export default function UsersPage() {
                   </tr>
                 ) : (
                   users.map((user) => (
-                    <tr key={user.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                    <tr
+                      key={user.id}
+                      className="border-b border-border/50 hover:bg-muted/20 transition-colors cursor-pointer"
+                      onClick={() => navigate(`/users/${user.id}`)}
+                    >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                            <span className="text-[11px] font-semibold text-primary">
-                              {user.name[0]?.toUpperCase()}
-                            </span>
+                          <div className="relative">
+                            <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                              <span className="text-[11px] font-semibold text-primary">
+                                {user.name[0]?.toUpperCase()}
+                              </span>
+                            </div>
+                            <span
+                              className={cn(
+                                'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card',
+                                user.isOnline ? 'bg-[#22c55e] animate-pulse' : 'bg-muted-foreground/40'
+                              )}
+                              title={user.isOnline ? 'Online' : 'Offline'}
+                            />
                           </div>
                           <span className="font-medium text-foreground">{user.name}</span>
                         </div>
@@ -320,7 +335,7 @@ export default function UsersPage() {
                           {fmtDate(user.lastSeenAt)}
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <ToggleActive
                           user={user}
                           onToggle={handleToggle}

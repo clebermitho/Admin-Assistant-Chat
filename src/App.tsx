@@ -7,6 +7,7 @@ import { AdminLayout } from '@/components/AdminLayout';
 import LoginPage      from '@/pages/Login';
 import DashboardPage  from '@/pages/Dashboard';
 import UsersPage      from '@/pages/Users';
+import UserDetailPage from '@/pages/UserDetail';
 import SuggestionsPage from '@/pages/Suggestions';
 import TemplatesPage  from '@/pages/Templates';
 import PromptsPage    from '@/pages/Prompts';
@@ -34,6 +35,7 @@ export default function App() {
           {/* Protected */}
           <Route path={ROUTE_PATHS.DASHBOARD}   element={<Protected><DashboardPage /></Protected>} />
           <Route path={ROUTE_PATHS.USERS}        element={<Protected><UsersPage /></Protected>} />
+          <Route path="/users/:id"               element={<Protected><UserDetailPage /></Protected>} />
           <Route path={ROUTE_PATHS.SUGGESTIONS}  element={<Protected><SuggestionsPage /></Protected>} />
           <Route path={ROUTE_PATHS.TEMPLATES}    element={<Protected><TemplatesPage /></Protected>} />
           <Route path={ROUTE_PATHS.PROMPTS}      element={<Protected><PromptsPage /></Protected>} />

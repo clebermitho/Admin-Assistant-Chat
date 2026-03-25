@@ -7,7 +7,10 @@ export interface User {
   email: string;
   role: 'AGENT' | 'ADMIN' | 'SUPER_ADMIN';
   isActive?: boolean;
+  isOnline?: boolean;
   lastSeenAt?: string | null;
+  dailyChatLimit?: number | null;
+  dailySuggestionLimit?: number | null;
   organizationId?: string;
   organization?: {
     id: string;

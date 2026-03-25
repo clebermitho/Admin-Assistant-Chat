@@ -57,7 +57,7 @@ const SETTING_GROUPS: SettingGroup[] = [
       {
         key: 'limits.suggestionsPerUserPerDay',
         label: 'Sugestões / usuário / dia',
-        description: 'Quantidade máxima de sugestões que cada agente pode gerar por dia. 0 = ilimitado.',
+        description: 'Limite padrão de sugestões por dia. Pode ser sobrescrito individualmente na página de cada usuário. 0 = ilimitado.',
         type: 'number',
         min: 0,
         max: 1000,
@@ -66,7 +66,7 @@ const SETTING_GROUPS: SettingGroup[] = [
       {
         key: 'limits.chatMessagesPerUserPerDay',
         label: 'Mensagens chat IA / usuário / dia',
-        description: 'Limite de mensagens no chat IA por agente por dia. 0 = ilimitado.',
+        description: 'Limite padrão de mensagens no chat IA por dia. Pode ser sobrescrito individualmente na página de cada usuário. 0 = ilimitado.',
         type: 'number',
         min: 0,
         max: 500,
@@ -379,6 +379,7 @@ export default function SettingsPage() {
             {/* Chaves desconhecidas (não mapeadas nos grupos acima) */}
             {Object.keys(localSettings)
               .filter((k) => !SETTING_FIELDS.some((f) => f.key === k))
+              .filter((k) => !k.startsWith('prompt.'))
               .map((key) => (
                 <Card key={key} className="divide-y divide-border">
                   <div className="px-6 py-3 bg-muted/30">
