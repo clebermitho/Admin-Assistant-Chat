@@ -86,10 +86,14 @@ async function request<T>(
 
   const makeReq = async (tk?: string) => {
     if (tk) headers['Authorization'] = `Bearer ${tk}`;
+    const timeoutSignal = AbortSignal.timeout(30000);
+    const signal = options.signal
+      ? AbortSignal.any([options.signal, timeoutSignal])
+      : timeoutSignal;
     return fetch(url, {
       ...options,
       headers,
-      signal: AbortSignal.timeout(30000),
+      signal,
     });
   };
 
@@ -338,8 +342,8 @@ export const quotaApi = {
 // Analytics
 // ============================================================
 export const analyticsApi = {
-  overview: async (): Promise<AnalyticsOverviewResponse> => {
-    const raw = await request<Record<string, unknown>>('/api/analytics/overview');
+  overview: async (options?: RequestInit): Promise<AnalyticsOverviewResponse> => {
+    const raw = await request<Record<string, unknown>>('/api/analytics/overview', options);
     return {
       totalCalls: Number(raw.totalCalls ?? raw.totalApiCalls ?? 0),
       tokensUsed: Number(raw.tokensUsed ?? raw.totalTokensUsed ?? 0),
@@ -351,9 +355,9 @@ export const analyticsApi = {
     };
   },
 
-  usagePerUser: async (since?: string): Promise<UsagePerUserResponse> => {
+  usagePerUser: async (since?: string, options?: RequestInit): Promise<UsagePerUserResponse> => {
     const params = since ? `?since=${encodeURIComponent(since)}` : '';
-    const raw = await request<{ users: Record<string, unknown>[] }>(`/api/analytics/usage-per-user${params}`);
+    const raw = await request<{ users: Record<string, unknown>[] }>(`/api/analytics/usage-per-user${params}`, options);
     const users: UserUsageRecord[] = (raw.users ?? []).map((u) => ({
       userId: String(u.userId ?? ''),
       name: String(u.name ?? ''),
@@ -365,11 +369,11 @@ export const analyticsApi = {
     return { users };
   },
 
-  usageOverTime: async (since?: string, granularity = 'day'): Promise<UsageOverTimeResponse> => {
+  usageOverTime: async (since?: string, granularity = 'day', options?: RequestInit): Promise<UsageOverTimeResponse> => {
     const params = new URLSearchParams();
     if (since) params.set('since', since);
     params.set('granularity', granularity);
-    const raw = await request<{ data: Record<string, unknown>[] }>(`/api/analytics/usage-over-time?${params}`);
+    const raw = await request<{ data: Record<string, unknown>[] }>(`/api/analytics/usage-over-time?${params}`, options);
     const data: UsageDataPoint[] = (raw.data ?? []).map((d) => ({
       date: String(d.date ?? ''),
       requests: Number(d.requests ?? 0),
