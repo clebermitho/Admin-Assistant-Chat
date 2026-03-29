@@ -303,7 +303,7 @@ export default function UsersPage() {
                       className="border-b border-border/50 hover:bg-muted/20 transition-colors cursor-pointer"
                       onClick={() => navigate(`/users/${user.id}`)}
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 align-middle">
                         <div className="flex items-center gap-2.5">
                           <div className="relative">
                             <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
@@ -322,8 +322,8 @@ export default function UsersPage() {
                           <span className="font-medium text-foreground">{user.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 align-middle text-muted-foreground">{user.email}</td>
+                      <td className="px-4 py-3 align-middle">
                         <div className="flex items-center gap-1.5">
                           {user.role === 'ADMIN' ? (
                             <Shield className="w-3 h-3 text-primary" />
@@ -335,7 +335,7 @@ export default function UsersPage() {
                           </StatusBadge>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 align-middle">
                         {user.isActive ? (
                           <span className="flex items-center gap-1 text-[#22c55e] text-xs">
                             <CheckCircle2 className="w-3 h-3" /> Ativo
@@ -346,18 +346,20 @@ export default function UsersPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">
+                      <td className="px-4 py-3 align-middle text-muted-foreground text-xs">
                         <div className="flex items-center gap-1">
                           <Clock className="w-3 h-3 shrink-0" />
                           {fmtDate(user.lastSeenAt)}
                         </div>
                       </td>
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                        <ToggleActive
-                          user={user}
-                          onToggle={handleToggle}
-                          loading={toggling.has(user.id)}
-                        />
+                      <td className="px-4 py-3 align-middle" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center h-full">
+                          <ToggleActive
+                            user={user}
+                            onToggle={handleToggle}
+                            loading={toggling.has(user.id)}
+                          />
+                        </div>
                       </td>
                     </tr>
                   ))
