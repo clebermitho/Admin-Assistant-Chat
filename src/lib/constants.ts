@@ -9,6 +9,7 @@ export const ROUTE_PATHS = {
   HOME:        '/',
   LOGIN:       '/login',
   DASHBOARD:   '/dashboard',
+  ANALYTICS:   '/analytics',
   USERS:       '/users',
   SUGGESTIONS: '/suggestions',
   TEMPLATES:   '/templates',

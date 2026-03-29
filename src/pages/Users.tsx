@@ -174,7 +174,7 @@ function ToggleActive({ user, onToggle, loading }: ToggleActiveProps) {
       disabled={loading}
       title={user.isActive ? 'Desativar' : 'Ativar'}
       className={cn(
-        'relative w-9 h-5 rounded-full transition-colors',
+        'relative inline-flex items-center w-9 h-5 rounded-full transition-colors shrink-0',
         user.isActive ? 'bg-[#22c55e]/80' : 'bg-muted',
         loading && 'opacity-50 cursor-not-allowed'
       )}
@@ -353,13 +353,11 @@ export default function UsersPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 align-middle" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center h-full">
-                          <ToggleActive
-                            user={user}
-                            onToggle={handleToggle}
-                            loading={toggling.has(user.id)}
-                          />
-                        </div>
+                        <ToggleActive
+                          user={user}
+                          onToggle={handleToggle}
+                          loading={toggling.has(user.id)}
+                        />
                       </td>
                     </tr>
                   ))

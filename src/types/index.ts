@@ -137,3 +137,40 @@ export type Settings = Record<string, SettingValue>;
 export interface SettingsResponse {
   settings: Settings;
 }
+
+// ============================================================
+// Analytics Types
+// ============================================================
+export interface AnalyticsOverviewResponse {
+  totalCalls: number;
+  tokensUsed: number;
+  monthlyQuota: number;
+  quotaPercent: number;
+  estimatedCostUsd: number;
+  totalUsers: number;
+  activeUsers: number;
+}
+
+export interface UserUsageRecord {
+  userId: string;
+  name: string;
+  email: string;
+  requests: number;
+  tokens: number;
+  estimatedCostUsd: number;
+}
+
+export interface UsagePerUserResponse {
+  users: UserUsageRecord[];
+}
+
+export interface UsageDataPoint {
+  date: string;
+  requests: number;
+  tokens: number;
+  estimatedCostUsd: number;
+}
+
+export interface UsageOverTimeResponse {
+  data: UsageDataPoint[];
+}

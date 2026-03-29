@@ -37,6 +37,18 @@ function fmtDate(iso: string | null | undefined) {
   });
 }
 
+function fmtRelative(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'agora mesmo';
+  if (diffMin < 60) return `há ${diffMin} min`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `há ${diffH}h`;
+  const diffD = Math.floor(diffH / 24);
+  return `há ${diffD} dia${diffD > 1 ? 's' : ''}`;
+}
+
 // ---- Helpers ----
 function formatLimit(limit: number | null | undefined, defaultText = 'Limite: padrão global') {
   if (limit == null) return defaultText;
@@ -321,7 +333,7 @@ export default function UserDetailPage() {
                     )}
                   </StatusBadge>
                   <StatusBadge variant={user.isOnline ? 'success' : 'muted'}>
-                    {user.isOnline ? 'Online' : 'Offline'}
+                    {user.isOnline ? 'Online' : `Offline${user.lastSeenAt ? ` · ${fmtRelative(user.lastSeenAt)}` : ''}`}
                   </StatusBadge>
                   {user.isActive === false && (
                     <StatusBadge variant="danger">Inativo</StatusBadge>
