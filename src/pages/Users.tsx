@@ -40,20 +40,27 @@ interface CreateModalProps {
   onCreated: () => void;
 }
 function CreateUserModal({ onClose, onCreated }: CreateModalProps) {
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'AGENT' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'AGENT', username: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!form.name || !form.email || !form.password) {
-      setError('Preencha todos os campos.');
+    if (!form.name || !form.password || (!form.email && !form.username)) {
+      setError('Preencha nome, senha e pelo menos um: e-mail ou username.');
       return;
     }
     setLoading(true);
     try {
-      await usersApi.create(form);
+      const payload: { name: string; password: string; role: string; email?: string; username?: string } = {
+        name: form.name,
+        password: form.password,
+        role: form.role,
+      };
+      if (form.email) payload.email = form.email;
+      if (form.username) payload.username = form.username;
+      await usersApi.create(payload);
       onCreated();
       onClose();
     } catch (err) {
@@ -86,12 +93,22 @@ function CreateUserModal({ onClose, onCreated }: CreateModalProps) {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1.5">E-mail</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1.5">E-mail <span className="text-muted-foreground/60">(opcional)</span></label>
             <input
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="joao@coren.org.br"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1.5">Username <span className="text-muted-foreground/60">(opcional)</span></label>
+            <input
+              type="text"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              placeholder="cleber_junior"
               className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
             />
           </div>

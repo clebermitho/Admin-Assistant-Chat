@@ -8,7 +8,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,14 +16,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError('Preencha e-mail e senha.');
+    if (!identifier || !password) {
+      setError('Preencha e-mail/username e senha.');
       return;
     }
     setError(null);
     setIsLoading(true);
     try {
-      await login(email, password);
+      await login(identifier, password);
       navigate(ROUTE_PATHS.DASHBOARD);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Credenciais inválidas.');
@@ -63,18 +63,18 @@ export default function LoginPage() {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
+            {/* Identifier */}
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5" htmlFor="email">
-                E-mail
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5" htmlFor="identifier">
+                E-mail ou Username
               </label>
               <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@coren.org.br"
+                id="identifier"
+                type="text"
+                autoComplete="username"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="admin@coren.org.br ou username"
                 className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
               />
             </div>

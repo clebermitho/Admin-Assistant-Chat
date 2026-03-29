@@ -12,7 +12,7 @@ interface AuthContextValue {
   user:      User | null;
   token:     string | null;
   isLoading: boolean;
-  login:     (email: string, password: string) => Promise<void>;
+  login:     (identifier: string, password: string) => Promise<void>;
   logout:    () => Promise<void>;
 }
 
@@ -72,8 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     tryValidate().finally(() => setIsLoading(false));
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await authApi.login(email, password);
+  const login = useCallback(async (identifier: string, password: string) => {
+    const res = await authApi.login(identifier, password);
     localStorage.setItem(TOKEN_KEY, res.token);
     if (res.refreshToken) {
       localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
