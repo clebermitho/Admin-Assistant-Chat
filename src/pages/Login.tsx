@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Bot, Eye, EyeOff, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTE_PATHS } from '@/lib/constants';
 
@@ -48,9 +48,9 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center mb-4 shadow-lg shadow-primary/30">
-            <Activity className="w-6 h-6 text-primary-foreground" />
+            <Bot className="w-6 h-6 text-primary-foreground" />
           </div>
-          <h1 className="text-xl font-semibold text-foreground">Chatplay Admin</h1>
+          <h1 className="text-xl font-semibold text-foreground">AssistentePlay Admin</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Conselho Regional de Enfermagem
           </p>

@@ -8,7 +8,7 @@ import {
   FileText,
   Settings,
   LogOut,
-  Activity,
+  Bot,
   ChevronRight,
   Clock,
   Sun,
@@ -63,11 +63,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         {/* Logo */}
         <div className="h-[60px] flex items-center gap-3 px-5 border-b border-border">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-            <Activity className="w-4 h-4 text-primary-foreground" />
+            <Bot className="w-4 h-4 text-primary-foreground" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground leading-none">Chatplay</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Admin Panel</p>
+            <p className="text-sm font-semibold text-foreground leading-none">AssistentePlay</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Painel Admin</p>
           </div>
         </div>
 
