@@ -32,10 +32,10 @@ beforeEach(() => {
 });
 
 describe('LoginPage', () => {
-  it('renders email and password fields', () => {
+  it('renders email/username and password fields', () => {
     render(<LoginPage />);
 
-    expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/e-mail ou username/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
   });
 
@@ -51,6 +51,6 @@ describe('LoginPage', () => {
 
     await user.click(screen.getByRole('button', { name: /entrar/i }));
 
-    expect(screen.getByText('Preencha e-mail e senha.')).toBeInTheDocument();
+    expect(screen.getByText('Preencha e-mail/username e senha.')).toBeInTheDocument();
   });
 });

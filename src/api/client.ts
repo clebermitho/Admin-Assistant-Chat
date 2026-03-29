@@ -135,11 +135,14 @@ async function request<T>(
 // Auth
 // ============================================================
 export const authApi = {
-  login: async (email: string, password: string) => {
+  login: async (identifier: string, password: string) => {
     try {
+      const body = identifier.includes('@')
+        ? { email: identifier, password }
+        : { username: identifier, password };
       const data = await request<AuthResponse>('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(body),
       });
 
       if (!data?.token) throw new Error('Login falhou: token não recebido');
@@ -196,7 +199,7 @@ export const usersApi = {
   get: (id: string) =>
     request<{ user: User & { stats?: Record<string, unknown> } }>(`/api/users/${id}`),
 
-  create: (data: { name: string; email: string; password: string; role: string }) =>
+  create: (data: { name: string; email?: string; username?: string; password: string; role: string }) =>
     request<{ user: User }>('/api/users', {
       method: 'POST',
       body: JSON.stringify(data),
