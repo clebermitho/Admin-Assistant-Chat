@@ -4,6 +4,7 @@ import type {
   UsersResponse, SuggestionsResponse, RejectedFeedbackResponse,
   TemplatesResponse, SettingsResponse,
   AnalyticsOverviewResponse, UsagePerUserResponse, UsageOverTimeResponse,
+  UserUsageRecord, UsageDataPoint,
 } from '@/types';
 
 // ============================================================
@@ -337,19 +338,45 @@ export const quotaApi = {
 // Analytics
 // ============================================================
 export const analyticsApi = {
-  overview: () =>
-    request<AnalyticsOverviewResponse>('/api/analytics/overview'),
-
-  usagePerUser: (since?: string) => {
-    const params = since ? `?since=${encodeURIComponent(since)}` : '';
-    return request<UsagePerUserResponse>(`/api/analytics/usage-per-user${params}`);
+  overview: async (): Promise<AnalyticsOverviewResponse> => {
+    const raw = await request<Record<string, unknown>>('/api/analytics/overview');
+    return {
+      totalCalls: Number(raw.totalCalls ?? raw.totalApiCalls ?? 0),
+      tokensUsed: Number(raw.tokensUsed ?? raw.totalTokensUsed ?? 0),
+      monthlyQuota: Number(raw.monthlyQuota ?? 0),
+      quotaPercent: Number(raw.quotaPercent ?? raw.quotaUsagePercent ?? 0),
+      estimatedCostUsd: Number(raw.estimatedCostUsd ?? raw.estimatedCostUSD ?? 0),
+      totalUsers: Number(raw.totalUsers ?? 0),
+      activeUsers: Number(raw.activeUsers ?? 0),
+    };
   },
 
-  usageOverTime: (since?: string, granularity = 'day') => {
+  usagePerUser: async (since?: string): Promise<UsagePerUserResponse> => {
+    const params = since ? `?since=${encodeURIComponent(since)}` : '';
+    const raw = await request<{ users: Record<string, unknown>[] }>(`/api/analytics/usage-per-user${params}`);
+    const users: UserUsageRecord[] = (raw.users ?? []).map((u) => ({
+      userId: String(u.userId ?? ''),
+      name: String(u.name ?? ''),
+      email: String(u.email ?? ''),
+      requests: Number(u.requests ?? u.totalRequests ?? 0),
+      tokens: Number(u.tokens ?? u.totalTokens ?? 0),
+      estimatedCostUsd: Number(u.estimatedCostUsd ?? u.estimatedCost ?? 0),
+    }));
+    return { users };
+  },
+
+  usageOverTime: async (since?: string, granularity = 'day'): Promise<UsageOverTimeResponse> => {
     const params = new URLSearchParams();
     if (since) params.set('since', since);
     params.set('granularity', granularity);
-    return request<UsageOverTimeResponse>(`/api/analytics/usage-over-time?${params}`);
+    const raw = await request<{ data: Record<string, unknown>[] }>(`/api/analytics/usage-over-time?${params}`);
+    const data: UsageDataPoint[] = (raw.data ?? []).map((d) => ({
+      date: String(d.date ?? ''),
+      requests: Number(d.requests ?? 0),
+      tokens: Number(d.tokens ?? 0),
+      estimatedCostUsd: Number(d.estimatedCostUsd ?? d.cost ?? 0),
+    }));
+    return { data };
   },
 };
 
