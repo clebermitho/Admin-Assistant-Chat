@@ -3,6 +3,7 @@ import type {
   User, AuthResponse, MetricsSummaryResponse, ActivityData,
   UsersResponse, SuggestionsResponse, RejectedFeedbackResponse,
   TemplatesResponse, SettingsResponse,
+  AnalyticsOverviewResponse, UsagePerUserResponse, UsageOverTimeResponse,
 } from '@/types';
 
 // ============================================================
@@ -330,6 +331,26 @@ export const quotaApi = {
       method: 'PUT',
       body: JSON.stringify({ resetUsedTokens: true }),
     }),
+};
+
+// ============================================================
+// Analytics
+// ============================================================
+export const analyticsApi = {
+  overview: () =>
+    request<AnalyticsOverviewResponse>('/api/analytics/overview'),
+
+  usagePerUser: (since?: string) => {
+    const params = since ? `?since=${encodeURIComponent(since)}` : '';
+    return request<UsagePerUserResponse>(`/api/analytics/usage-per-user${params}`);
+  },
+
+  usageOverTime: (since?: string, granularity = 'day') => {
+    const params = new URLSearchParams();
+    if (since) params.set('since', since);
+    params.set('granularity', granularity);
+    return request<UsageOverTimeResponse>(`/api/analytics/usage-over-time?${params}`);
+  },
 };
 
 // ============================================================

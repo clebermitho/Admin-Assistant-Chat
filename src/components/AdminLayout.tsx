@@ -13,6 +13,7 @@ import {
   Clock,
   Sun,
   Moon,
+  BarChart3,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTE_PATHS } from '@/lib/constants';
@@ -20,6 +21,7 @@ import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { to: ROUTE_PATHS.DASHBOARD,   icon: LayoutDashboard, label: 'Dashboard' },
+  { to: ROUTE_PATHS.ANALYTICS,   icon: BarChart3,       label: 'API Analytics' },
   { to: ROUTE_PATHS.USERS,       icon: Users,           label: 'Usuários' },
   { to: ROUTE_PATHS.SUGGESTIONS, icon: MessageSquare,   label: 'Sugestões' },
   { to: ROUTE_PATHS.TEMPLATES,   icon: FileText,        label: 'Templates' },

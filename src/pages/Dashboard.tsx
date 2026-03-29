@@ -146,7 +146,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" description="Visão geral do sistema Chatplay" />
+      <PageHeader title="Dashboard" description="Visão geral do sistema AssistentePlay" />
 
       {/* Metric Cards — 6 cards em grid 2x3 */}
       <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 mb-6">

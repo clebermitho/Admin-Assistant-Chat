@@ -279,7 +279,7 @@ export default function SettingsPage() {
   if (error) {
     return (
       <div>
-        <PageHeader title="Configurações" description="Parâmetros do sistema Chatplay" />
+        <PageHeader title="Configurações" description="Parâmetros do sistema AssistentePlay" />
         <ErrorState message={error} onRetry={load} />
       </div>
     );
