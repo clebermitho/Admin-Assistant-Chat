@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   Activity,
   Zap,
@@ -173,55 +173,79 @@ export default function AnalyticsPage() {
   const [sortField, setSortField] = useState<SortField>('requests');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
-  const since = getSinceDate(dateRange);
+  // Memoize `since` so it only changes when dateRange changes, preventing
+  // infinite re-renders caused by getSinceDate() returning a new string each call.
+  const since = useMemo(() => getSinceDate(dateRange), [dateRange]);
+
+  // Incrementing this token manually triggers a retry of the date-ranged data.
+  const [fetchRevision, setFetchRevision] = useState(0);
+
+  // Ref used to abort in-flight overview requests on cleanup.
+  const overviewControllerRef = useRef<AbortController | null>(null);
 
   const loadOverview = useCallback(async () => {
+    overviewControllerRef.current?.abort();
+    const controller = new AbortController();
+    overviewControllerRef.current = controller;
+
     setLoadingOverview(true);
     setErrorOverview(null);
     try {
-      const res = await analyticsApi.overview();
-      setOverview(res);
+      const res = await analyticsApi.overview({ signal: controller.signal });
+      if (!controller.signal.aborted) setOverview(res);
     } catch (e) {
-      setErrorOverview(e instanceof Error ? e.message : 'Erro ao carregar visão geral.');
+      if (!controller.signal.aborted) {
+        setErrorOverview(e instanceof Error ? e.message : 'Erro ao carregar visão geral.');
+      }
     } finally {
-      setLoadingOverview(false);
-    }
-  }, []);
-
-  const loadPerUser = useCallback(async (s: string) => {
-    setLoadingPerUser(true);
-    setErrorPerUser(null);
-    try {
-      const res = await analyticsApi.usagePerUser(s);
-      setUsagePerUser(res.users ?? []);
-    } catch (e) {
-      setErrorPerUser(e instanceof Error ? e.message : 'Erro ao carregar uso por usuário.');
-    } finally {
-      setLoadingPerUser(false);
-    }
-  }, []);
-
-  const loadOverTime = useCallback(async (s: string) => {
-    setLoadingOverTime(true);
-    setErrorOverTime(null);
-    try {
-      const res = await analyticsApi.usageOverTime(s, 'day');
-      setUsageOverTime(res.data ?? []);
-    } catch (e) {
-      setErrorOverTime(e instanceof Error ? e.message : 'Erro ao carregar uso ao longo do tempo.');
-    } finally {
-      setLoadingOverTime(false);
+      if (!controller.signal.aborted) setLoadingOverview(false);
     }
   }, []);
 
   useEffect(() => {
     loadOverview();
+    return () => { overviewControllerRef.current?.abort(); };
   }, [loadOverview]);
 
+  // Fetch usage-per-user and usage-over-time together. Depends only on `since`
+  // (memoized from dateRange) and `fetchRevision` (incremented on manual retry).
+  // AbortController cancels in-flight requests when the effect re-runs or the
+  // component unmounts, preventing the request accumulation loop.
   useEffect(() => {
-    loadPerUser(since);
-    loadOverTime(since);
-  }, [since, loadPerUser, loadOverTime]);
+    const controller = new AbortController();
+
+    const fetchData = async () => {
+      setLoadingPerUser(true);
+      setErrorPerUser(null);
+      try {
+        const res = await analyticsApi.usagePerUser(since, { signal: controller.signal });
+        if (!controller.signal.aborted) setUsagePerUser(res.users ?? []);
+      } catch (e) {
+        if (!controller.signal.aborted) {
+          setErrorPerUser(e instanceof Error ? e.message : 'Erro ao carregar uso por usuário.');
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoadingPerUser(false);
+      }
+
+      setLoadingOverTime(true);
+      setErrorOverTime(null);
+      try {
+        const res = await analyticsApi.usageOverTime(since, 'day', { signal: controller.signal });
+        if (!controller.signal.aborted) setUsageOverTime(res.data ?? []);
+      } catch (e) {
+        if (!controller.signal.aborted) {
+          setErrorOverTime(e instanceof Error ? e.message : 'Erro ao carregar uso ao longo do tempo.');
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoadingOverTime(false);
+      }
+    };
+
+    fetchData();
+
+    return () => controller.abort();
+  }, [since, fetchRevision]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -247,8 +271,7 @@ export default function AnalyticsPage() {
 
   const retryAll = () => {
     loadOverview();
-    loadPerUser(since);
-    loadOverTime(since);
+    setFetchRevision((r) => r + 1);
   };
 
   return (
@@ -339,7 +362,7 @@ export default function AnalyticsPage() {
         </div>
         <div className="p-5">
           {errorOverTime ? (
-            <ErrorState message={errorOverTime} onRetry={() => loadOverTime(since)} />
+            <ErrorState message={errorOverTime} onRetry={() => setFetchRevision((r) => r + 1)} />
           ) : loadingOverTime ? (
             <SkeletonBox className="h-40 w-full rounded-lg" />
           ) : (
@@ -358,7 +381,7 @@ export default function AnalyticsPage() {
         </div>
         {errorPerUser ? (
           <div className="p-5">
-            <ErrorState message={errorPerUser} onRetry={() => loadPerUser(since)} />
+            <ErrorState message={errorPerUser} onRetry={() => setFetchRevision((r) => r + 1)} />
           </div>
         ) : (
           <div className="overflow-x-auto">
