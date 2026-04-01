@@ -86,7 +86,7 @@ interface BarChartProps {
 function UsageBarChart({ data }: BarChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const maxRequests = Math.max(...(data.length > 0 ? data.map((d) => d.requests) : [0]), 1);
+  const maxRequests = Math.max(...data.map((d) => d.requests), 1);
   const CHART_HEIGHT = 160; // px — matches h-40
   const MIN_BAR_PX = 5;
 
@@ -213,7 +213,7 @@ function UsageBarChart({ data }: BarChartProps) {
                 return (
                   <div key={point.date} className="flex-1 flex justify-center overflow-hidden">
                     {showLabel && (
-                      <span className="text-[8px] text-muted-foreground/60 leading-none truncate">
+                      <span className="text-[9px] text-muted-foreground/60 leading-none truncate">
                         {label}
                       </span>
                     )}
