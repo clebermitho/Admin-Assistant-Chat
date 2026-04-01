@@ -9,6 +9,7 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
+  BarChart3,
 } from 'lucide-react';
 import { analyticsApi } from '@/api/client';
 import type {
@@ -21,6 +22,7 @@ import {
   PageHeader,
   SkeletonBox,
   ErrorState,
+  EmptyState,
 } from '@/components/SharedUI';
 import { cn } from '@/lib/utils';
 
@@ -82,42 +84,166 @@ interface BarChartProps {
   data: UsageDataPoint[];
 }
 function UsageBarChart({ data }: BarChartProps) {
-  const maxRequests = Math.max(...data.map((d) => d.requests), 1);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const maxRequests = Math.max(...(data.length > 0 ? data.map((d) => d.requests) : [0]), 1);
+  const CHART_HEIGHT = 160; // px — matches h-40
+  const MIN_BAR_PX = 5;
+
+  // Y-axis: 4 ticks from 0 to maxRequests
+  const yTicks = [0, 1, 2, 3].map((i) => Math.round((maxRequests / 3) * i));
+
+  // Label interval: show a label every N bars depending on total count
+  const labelInterval = data.length > 60 ? 14 : data.length > 30 ? 7 : data.length > 15 ? 5 : 1;
+
+  // Period summary totals
+  const totalRequests = data.reduce((s, d) => s + d.requests, 0);
+  const totalTokens = data.reduce((s, d) => s + d.tokens, 0);
+  const totalCost = data.reduce((s, d) => s + d.estimatedCostUsd, 0);
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
-        Sem dados para o período selecionado.
-      </div>
+      <EmptyState
+        icon={<BarChart3 className="w-6 h-6 text-muted-foreground" />}
+        title="Nenhuma requisição de IA registrada"
+        description="Nenhuma requisição de IA foi registrada neste período."
+      />
     );
   }
 
   return (
-    <div className="flex items-end gap-1 h-40 w-full">
-      {data.map((point) => {
-        const heightPct = (point.requests / maxRequests) * 100;
-        const label = new Date(point.date).toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-        });
-        return (
-          <div
-            key={point.date}
-            className="flex-1 flex flex-col items-center gap-1 group"
-            title={`${label}: ${point.requests} req, $${point.estimatedCostUsd.toFixed(4)}`}
-          >
-            <div
-              className="w-full rounded-t-sm bg-primary/70 group-hover:bg-primary transition-colors"
-              style={{ height: `${Math.max(heightPct, 2)}%` }}
-            />
-            {data.length <= 15 && (
-              <span className="text-[9px] text-muted-foreground/60 rotate-0 leading-none">
-                {label}
-              </span>
-            )}
+    <div className="space-y-3">
+      {/* Chart area */}
+      <div className="flex gap-2">
+        {/* Y-axis labels */}
+        <div
+          className="flex flex-col justify-between items-end shrink-0 pb-5"
+          style={{ height: CHART_HEIGHT }}
+        >
+          {[...yTicks].reverse().map((tick) => (
+            <span key={tick} className="text-[9px] text-muted-foreground/60 leading-none">
+              {tick >= 1000 ? `${(tick / 1000).toFixed(1)}k` : tick}
+            </span>
+          ))}
+        </div>
+
+        {/* Bars + grid */}
+        <div className="flex-1 min-w-0">
+          <div className="relative" style={{ height: CHART_HEIGHT }}>
+            {/* Horizontal grid lines */}
+            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-5">
+              {[...yTicks].reverse().map((tick) => (
+                <div key={tick} className="w-full border-t border-border/30" />
+              ))}
+            </div>
+
+            {/* Bars row */}
+            <div className="absolute inset-x-0 bottom-5 top-0 flex items-end gap-px">
+              {data.map((point, i) => {
+                const barHeightPct = (point.requests / maxRequests) * 100;
+                const barHeightPx = Math.max(
+                  (barHeightPct / 100) * (CHART_HEIGHT - 20),
+                  point.requests > 0 ? MIN_BAR_PX : 2,
+                );
+                const label = new Date(point.date).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                });
+                const isHovered = hoveredIndex === i;
+                return (
+                  <div
+                    key={point.date}
+                    className="relative flex-1 flex flex-col justify-end"
+                    style={{ height: '100%' }}
+                    onMouseEnter={() => setHoveredIndex(i)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  >
+                    {/* Tooltip */}
+                    {isHovered && (
+                      <div
+                        className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 z-10 bg-popover border border-border rounded-lg shadow-md px-2.5 py-2 text-xs whitespace-nowrap pointer-events-none"
+                        style={{ minWidth: 140 }}
+                      >
+                        <p className="font-medium text-foreground mb-1">{label}</p>
+                        <p className="text-muted-foreground">
+                          Req:{' '}
+                          <span className="text-foreground font-medium">
+                            {point.requests.toLocaleString('pt-BR')}
+                          </span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Tokens:{' '}
+                          <span className="text-foreground font-medium">
+                            {point.tokens.toLocaleString('pt-BR')}
+                          </span>
+                        </p>
+                        <p className="text-muted-foreground">
+                          Custo:{' '}
+                          <span className="text-foreground font-medium">
+                            ${point.estimatedCostUsd.toFixed(4)}
+                          </span>
+                        </p>
+                      </div>
+                    )}
+                    {/* Bar */}
+                    <div
+                      className={cn(
+                        'w-full rounded-t-sm transition-colors',
+                        point.requests === 0
+                          ? 'bg-muted/50'
+                          : isHovered
+                            ? 'bg-primary'
+                            : 'bg-primary/70',
+                      )}
+                      style={{ height: barHeightPx }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* X-axis date labels */}
+            <div className="absolute inset-x-0 bottom-0 h-5 flex items-end gap-px">
+              {data.map((point, i) => {
+                const label = new Date(point.date).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                });
+                const showLabel = i % labelInterval === 0;
+                return (
+                  <div key={point.date} className="flex-1 flex justify-center overflow-hidden">
+                    {showLabel && (
+                      <span className="text-[8px] text-muted-foreground/60 leading-none truncate">
+                        {label}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        );
-      })}
+        </div>
+      </div>
+
+      {/* Period summary */}
+      <div className="flex items-center gap-4 pt-1 border-t border-border/40 text-xs text-muted-foreground flex-wrap">
+        <span>
+          Total:{' '}
+          <span className="font-medium text-foreground">
+            {totalRequests.toLocaleString('pt-BR')} req
+          </span>
+        </span>
+        <span>
+          Tokens:{' '}
+          <span className="font-medium text-foreground">
+            {totalTokens.toLocaleString('pt-BR')}
+          </span>
+        </span>
+        <span>
+          Custo estimado:{' '}
+          <span className="font-medium text-foreground">${totalCost.toFixed(4)}</span>
+        </span>
+      </div>
     </div>
   );
 }
