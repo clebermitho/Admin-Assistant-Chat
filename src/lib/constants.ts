@@ -50,8 +50,10 @@ export const USER_ROLES = ['ADMIN', 'AGENT'] as const;
 export type UserRole = typeof USER_ROLES[number];
 
 // ============================================================
-// Log de configuração
+// Log de configuração (apenas em desenvolvimento)
 // ============================================================
-console.log('🌐 API Base URL (backend):', API_BASE_URL);
-console.log('🔧 Ambiente:', import.meta.env.MODE);
-console.log('🚀 Admin URL:', window.location.origin);
+if (import.meta.env.DEV) {
+  console.log('🌐 API Base URL (backend):', API_BASE_URL);
+  console.log('🔧 Ambiente:', import.meta.env.MODE);
+  console.log('🚀 Admin URL:', window.location.origin);
+}
