@@ -11,11 +11,8 @@ const KEYS = {
 
 const DEFAULT_SUGGESTIONS_PROMPT = `Você é um assistente especializado do Coren (Conselho Regional de Enfermagem).
 
-BASE COREN:
-{{BASE_COREN}}
-
-BASE SISTEMA:
-{{BASE_SISTEMA}}
+BASE DE CONHECIMENTO:
+{{KNOWLEDGE_CONTEXT}}
 
 REGRAS:
 1. Nunca chame o profissional de "cliente" — use "profissional".
@@ -38,11 +35,8 @@ NÃO use numeração nem prefixos como "Resposta 1:".`;
 
 const DEFAULT_CHAT_PROMPT = `Você é um assistente inteligente do Coren que ajuda operadores humanos.
 
-BASE COREN:
-{{BASE_COREN}}
-
-BASE SISTEMA:
-{{BASE_SISTEMA}}
+BASE DE CONHECIMENTO:
+{{KNOWLEDGE_CONTEXT}}
 
 CONTEXTO (se houver):
 {{CONTEXT}}
@@ -153,7 +147,7 @@ export default function PromptsPage() {
           <div>
             <h2 className="text-sm font-semibold text-foreground">Sugestões (POST /api/ai/suggestions)</h2>
             <p className="text-xs text-muted-foreground">
-              Variáveis: {'{{BASE_COREN}} {{BASE_SISTEMA}} {{CONTEXT}} {{QUESTION}} {{CATEGORY}} {{AVOID_BLOCK}} {{EXAMPLES_BLOCK}}'}
+              Variáveis: {'{{KNOWLEDGE_CONTEXT}} {{CONTEXT}} {{QUESTION}} {{CATEGORY}} {{AVOID_BLOCK}} {{EXAMPLES_BLOCK}}'}
             </p>
           </div>
           <textarea
@@ -168,7 +162,7 @@ export default function PromptsPage() {
           <div>
             <h2 className="text-sm font-semibold text-foreground">Chat (POST /api/ai/chat)</h2>
             <p className="text-xs text-muted-foreground">
-              Variáveis: {'{{BASE_COREN}} {{BASE_SISTEMA}} {{CONTEXT}} {{MESSAGE}} {{HISTORY}}'}
+              Variáveis: {'{{KNOWLEDGE_CONTEXT}} {{CONTEXT}} {{MESSAGE}} {{HISTORY}}'}
             </p>
           </div>
           <textarea
