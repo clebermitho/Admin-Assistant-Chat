@@ -71,6 +71,14 @@ async function doRefresh(): Promise<string> {
 // ============================================================
 // REQUEST PADRÃO
 // ============================================================
+function generateRequestId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  const ts = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  return `${Date.now().toString(36)}-${ts.toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -80,6 +88,7 @@ async function request<T>(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'X-Request-ID': generateRequestId(),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers as Record<string, string> | undefined),
   };
